@@ -2,6 +2,6 @@
 all: Sprites
 
 Sprites:
-	$(MAKE) -C aesprite
+	$(MAKE) -C aseprite
 
 .PHONY: all
