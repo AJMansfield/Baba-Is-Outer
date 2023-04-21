@@ -45,3 +45,5 @@ luac.out
 
 # Build Outputs
 Sprites/*.png
+Baba-is-Outer/
+*.zip

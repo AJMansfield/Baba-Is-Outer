@@ -22,3 +22,8 @@ fetch:
 	cp '/c/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data/Worlds/levels/'/*.ld .
 	cp '/c/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data/Worlds/levels/'/*.png .
 	cp '/c/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data/Worlds/levels/'/world_data.txt .
+
+package: $(FILES) $(DIRS)
+	install -d Baba-is-Outer
+	install $(FILES) Baba-is-Outer
+	cp -r $(DIRS) Baba-is-Outer
