@@ -1,6 +1,6 @@
 
 TOOLDIR = ../toolchain
-OUTDIR = ../build/Sprites
+OUTDIR = ../Sprites
 
 ASEPRITE = $(TOOLDIR)/aseprite.sh --batch
 ASE_SCRIPT = --script $(TOOLDIR)/baba_sprite_export.lua
