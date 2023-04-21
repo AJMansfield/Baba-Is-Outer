@@ -422,7 +422,7 @@ local function export_spr(spr_type, layer, spr_name, dir_name)
     cmd = cmd..table.concat(cmds, " & ")
     os.execute(cmd)
     
-
+--[[
     local confirm_dlg = Dialog()
                 :label{ label=tag_count.." Tag(s) exported" }
                 :label{ label="Output Directory: "..out_dir }
@@ -433,6 +433,7 @@ local function export_spr(spr_type, layer, spr_name, dir_name)
     if confirm_dlg.dir then
         open_dir_with_exported_sprites_in_explorer(out_dir)
     end
+]]
 end
 
 function export_spr_slices(spr_name, layer, dir_name, gen_diagonals)
@@ -931,12 +932,15 @@ if input.confirm then
 end
 ]]
 
--- Before we execute this script, ensure the file gets saved to get the most recent results. 
-check_tag_requirements(app.params["tiling"])
+input_tiling = predicted_anim_style
+input_layer = "Visible Layers"
+input_name = filename
 
-if app.params["tiling"] ~= "tiled_slices" and app.params["tiling"] ~= "diag_tiled_slices" then
-    export_spr(app.params["tiling"], app.params["layer"], app.params["name"], dir_name)
+check_tag_requirements(input_tiling)
+
+if input_tiling ~= "tiled_slices" and input_tiling ~= "diag_tiled_slices" then
+    export_spr(input_tiling, input_layer, input_name, dir_name)
 else
-    local gen_diagonals = app.params["tiling"] == "diag_tiled_slices"
-    export_spr_slices(input.name, input.layer, dir_name, gen_diagonals)
+    local gen_diagonals = input_tiling == "diag_tiled_slices"
+    export_spr_slices(input_name, input_layer, dir_name, gen_diagonals)
 end
