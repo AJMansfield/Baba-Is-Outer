@@ -1,14 +1,16 @@
 
-SOURCEDIR = .
 BUILDDIR = build/Sprites
 TOOLDIR = ../toolchain
 
-AESPRITE = /c/Program Files\ (x86)/Steam/steamapps/common/Aseprite/Aseprite.exe
+ASEPRITE = $(TOOLDIR)/aseprite.sh
 FLAGS = --batch --script $(TOOLDIR)/baba_sprite_export.lua
 
-SOURCES = $(wildcard $(SOURCEDIR)/*.aesprite)
-OBJECTS = $(pathsubst $(SOURCEDIR)/%.aesprite,$(BUILDDIR)/%_0_1.png,$(SPRITE_SOURCES))
+SOURCES = $(wildcard *.aseprite)
+OBJECTS = $(patsubst %.aseprite,$(BUILDDIR)/%_0_1.png,$(SOURCES))
 
-sprites: $(SPRITE_OBJECTS)
-build/Sprites/*_0_1.png: sprites/%.aesprite
+all: $(OBJECTS)
 
+$(BUILDDIR)/%_0_1.png: %.aseprite
+	$(ASEPRITE) $(FLAGS) $@
+
+.PHONY: all 

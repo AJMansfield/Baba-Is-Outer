@@ -826,6 +826,7 @@ for i,v in ipairs(all_layers) do
     table.insert(layer_options, v)
 end
 
+--[[
 local dlg = Dialog("Baba Sprite Import/Export/Generate Template")
 local orig_bounds = nil
 
@@ -927,4 +928,15 @@ if input.confirm then
     elseif input.import then
         import_baba_sprite(input.file, input.tiling)
     end
+end
+]]
+
+-- Before we execute this script, ensure the file gets saved to get the most recent results. 
+check_tag_requirements(app.params["tiling"])
+
+if app.params["tiling"] ~= "tiled_slices" and app.params["tiling"] ~= "diag_tiled_slices" then
+    export_spr(app.params["tiling"], app.params["layer"], app.params["name"], dir_name)
+else
+    local gen_diagonals = app.params["tiling"] == "diag_tiled_slices"
+    export_spr_slices(input.name, input.layer, dir_name, gen_diagonals)
 end
