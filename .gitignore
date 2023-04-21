@@ -41,3 +41,6 @@ luac.out
 
 # Baba Is You Temporary Files
 *.txt.tmp
+
+# Outputs
+build/
