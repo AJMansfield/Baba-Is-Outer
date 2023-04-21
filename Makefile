@@ -1,7 +1,7 @@
 
-all: sprites
+all: Sprites
 
-sprites:
-	$(MAKE) -C sprites
+Sprites:
+	$(MAKE) -C aesprite
 
-.PHONY: all sprites
+.PHONY: all
