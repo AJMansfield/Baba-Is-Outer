@@ -1,6 +1,6 @@
 PACK_NAME = Baba-Is-Outer
 
-BABA_PATH = /c/Program Files (x86)/Steam/steamapps/common/Baba Is You/
+BABA_PATH = /c/Program Files (x86)/Steam/steamapps/common/Baba Is You
 BABA_EDIT_PATH = $(BABA_PATH)/Data/Worlds/levels
 BABA_INSTALL_PATH = $(BABA_PATH)/Data/Worlds/$(PACK_NAME)
 
@@ -41,7 +41,7 @@ edit: $(PACK_NAME).zip # copy the level data into the level editor world path
 	cp -r $(PACK_NAME) $(BABA_EDIT_PATH)
 
 save: # copy any modified level editor data back into the repo
-	cp "$(BABA_EDIT_PATH)/*.l" "$(BABA_EDIT_PATH)/*.ld" "$(BABA_EDIT_PATH)/*.png" "$(BABA_EDIT_PATH)/world_data.txt" .
+	$(TOOL_DIR)/save.sh '$(BABA_EDIT_PATH)'
 
 package: $(PACK_NAME).zip
 
