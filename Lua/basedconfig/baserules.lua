@@ -25,7 +25,34 @@ local mod_config = {
     problem. So to be on the safe side, make sure you have at least one text object in you level.
  ]]
 local persist_baserules = {
-    "me is yellow"
+    "text is not push",
+    "text on tile is hide",
+    "tile is hide",
+
+    "text on belt is nudgeright",
+    "text on bug is nudgeleft",
+    "bug is you",
+    "belt near bug is you",
+    "bug is lockedleft",
+    "bug is lockedright",
+    "belt is lockedleft",
+    "belt is lockedright",
+    "bug is hide",
+    "belt is hide",
+
+    "text on bird is nudgedown",
+    "text on me is nudgeup",
+    "me is you",
+    "bird near me is you",
+    "me is lockedup",
+    "me is lockeddown",
+    "bird is lockedup",
+    "bird is lockeddown",
+    "me is hide",
+    "bird is hide",
+
+    "pipe is stop",
+    "pipe is hide"
 }
 
 
@@ -102,38 +129,11 @@ local levelpack_baserules = {
         }
  ]]
 local level_baserules = {
-    ["7level"] = {
-        rocket_thrust_baserule = {
-            "text is not push",
-            "text on tile is hide",
-            "tile is hide",
+    -- ["7level"] = {
+    --     thrust_baserule = {
+    --     }
 
-            "text on belt is nudgeright",
-            "text on bug is nudgeleft",
-            "bug is you",
-            "belt near bug is you",
-            "bug is lockedleft",
-            "bug is lockedright",
-            "belt is lockedleft",
-            "belt is lockedright",
-            "bug is hide",
-            "belt is hide",
-
-            "text on bird is nudgeup",
-            "text on me is nudgedown",
-            "me is you",
-            "bird near me is you",
-            "me is lockedup",
-            "me is lockeddown",
-            "bird is lockedup",
-            "bird is lockeddown",
-            "me is hide",
-            "bird is hide",
-
-            "pipe is stop"
-        }
-
-    }
+    -- }
 }
 
 -- Ignore this last part. It's needed to load all the baserules into the mod

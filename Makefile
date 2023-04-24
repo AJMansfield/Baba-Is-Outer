@@ -24,6 +24,7 @@ DEPS += $(wildcard *.ld)
 DEPS += $(wildcard *.png)
 DEPS  += world_data.txt
 DEPS  += $(wildcard Lua/*)
+DEPS  += $(wildcard Lua/*/*)
 FILES = $(DEPS)
 DEPS  += $(SPRITE_OBJECTS)
 FILES += $(wildcard $(SPRITE_DIR)/*.png)
@@ -46,7 +47,7 @@ save: # copy any modified level editor data back into the repo
 package: $(PACK_NAME).zip
 
 install: $(PACK_NAME).zip
-	cp -r $(PACK_NAME) -T "$(BABA_INSTALL_PATH)""
+	cp -r $(PACK_NAME) -T "$(BABA_INSTALL_PATH)"
 
 clean:
 	rm -f Sprites/*
