@@ -34,13 +34,11 @@ $(PACK_NAME).zip: all
 		install -D $$f $(PACK_NAME)/$$f ; \
 	done
 	$(TOOL_DIR)/mkzip.sh $(PACK_NAME).zip $(PACK_NAME)
-	rm -rd $(PACK_NAME)/
-
 
 all: $(SPRITE_OBJECTS)
 
 edit: $(PACK_NAME).zip # copy the level data into the level editor world path
-	tar -xf $(PACK_NAME).zip $(BABA_EDIT_PATH)
+	cp -r $(PACK_NAME) $(BABA_EDIT_PATH)
 
 save: # copy any modified level editor data back into the repo
 	cp "$(BABA_EDIT_PATH)/*.l" "$(BABA_EDIT_PATH)/*.ld" "$(BABA_EDIT_PATH)/*.png" "$(BABA_EDIT_PATH)/world_data.txt" .
@@ -48,7 +46,7 @@ save: # copy any modified level editor data back into the repo
 package: $(PACK_NAME).zip
 
 install: $(PACK_NAME).zip
-	tar -xf $(PACK_NAME).zip $(BABA_INSTALL_PATH)
+	cp -r $(PACK_NAME) $(BABA_INSTALL_PATH)
 
 clean:
 	rm -f Sprites/*
