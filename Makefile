@@ -38,15 +38,15 @@ $(PACK_NAME).zip: all
 all: $(SPRITE_OBJECTS)
 
 edit: $(PACK_NAME).zip # copy the level data into the level editor world path
-	cp -r $(PACK_NAME) $(BABA_EDIT_PATH)
+	cp -r $(PACK_NAME) -T "$(BABA_EDIT_PATH)"
 
 save: # copy any modified level editor data back into the repo
-	$(TOOL_DIR)/save.sh '$(BABA_EDIT_PATH)'
+	$(TOOL_DIR)/save.sh "$(BABA_EDIT_PATH)"
 
 package: $(PACK_NAME).zip
 
 install: $(PACK_NAME).zip
-	cp -r $(PACK_NAME) $(BABA_INSTALL_PATH)
+	cp -r $(PACK_NAME) -T "$(BABA_INSTALL_PATH)""
 
 clean:
 	rm -f Sprites/*
