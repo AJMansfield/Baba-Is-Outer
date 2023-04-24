@@ -13,20 +13,22 @@ SPRITE_SCRIPT = --script $(TOOL_DIR)/baba_sprite_export.lua
 SPRITE_SOURCES = $(wildcard aseprite/*.aseprite)
 SPRITE_OBJECTS = $(patsubst aseprite/%.aseprite,$(SPRITE_DIR)/%_0_1.png,$(SPRITE_SOURCES))
 
-$(SPRITE_DIR)/%_*_*.png: aseprite/%.aseprite
+$(SPRITE_DIR)/%_0_1.png: aseprite/%.aseprite
 	$(ASEPRITE) $< $(SPRITE_SCRIPT)
 	mkdir -p $(SPRITE_DIR)
 	mv $(patsubst %.aseprite,%_out,$<)/*.png $(SPRITE_DIR)
 	rm -d $(patsubst %.aseprite,%_out,$<)
 
-FILES  = $(wildcard *.l)
-FILES += $(wildcard *.ld)
-FILES += $(wildcard *.png)
-FILES += world_data.txt
+DEPS  = $(wildcard *.l)
+DEPS += $(wildcard *.ld)
+DEPS += $(wildcard *.png)
+DEPS  += world_data.txt
+DEPS  += $(wildcard Lua/*)
+FILES = $(DEPS)
+DEPS  += $(SPRITE_OBJECTS)
 FILES += $(wildcard $(SPRITE_DIR)/*.png)
-FILES += $(wildcard Lua/*)
 
-$(PACK_NAME).zip: all $(FILES)
+$(PACK_NAME).zip: all
 	@for f in $(FILES) ; do \
 		echo install -D $$f $(PACK_NAME)/$$f ; \
 		install -D $$f $(PACK_NAME)/$$f ; \
@@ -49,9 +51,9 @@ install: $(PACK_NAME).zip
 	tar -xf $(PACK_NAME).zip $(BABA_INSTALL_PATH)
 
 clean:
-	rm Sprites/*
-	rm $(PACK_NAME).zip
-	rm -rd $(PACK_NAME)/
-	rm -rd *_out/
+	rm -f Sprites/*
+	rm -f $(PACK_NAME).zip
+	rm -rdf $(PACK_NAME)/
+	rm -rdf *_out/
 
 .PHONY: all edit save package install clean
