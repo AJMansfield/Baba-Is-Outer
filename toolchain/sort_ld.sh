@@ -30,5 +30,8 @@ reformat_file(){
 
 for file in $@
 do
-    reformat_file "$file" >"$file"
+    temp=$(mktemp)
+    cat "$file" > $temp
+    reformat_file $temp >"$file"
+    rm $temp
 done
