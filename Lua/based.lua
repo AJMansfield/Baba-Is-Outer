@@ -1,6 +1,6 @@
 -- Copied From: https://github.com/PlasmaFlare/BASED-mod
 local version = "1.7"
-timedmessage(string.format("You are using the $0,2($0,3($2,2B$2,4A$5,4S$4,4E$3,0D$0,3)$0,2)$0,3 mod v%s!", version))
+-- timedmessage(string.format("You are using the $0,2($0,3($2,2B$2,4A$5,4S$4,4E$3,0D$0,3)$0,2)$0,3 mod v%s!", version))
 
 -- Get this lua file's script path to be able to use loadfile()
 local function script_path()
@@ -389,7 +389,7 @@ local function init_baserules(on_load)
     local invalid_sents = {}
 
     -- Use loadfile() instead of require() since require() does not reload the module if it already exists 
-    local get_baserules, err = loadfile(script_path().."/basedconfig/baserules.lua")
+    local get_baserules, err = loadfile(script_path().."/baserules.lua")
 
     if err ~= nil then
         if on_load then
