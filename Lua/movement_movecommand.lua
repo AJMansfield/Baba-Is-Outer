@@ -444,6 +444,8 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 --- BEGIN PATCH ---
         elseif (take == 9) then -- cloned from fear
             local orbitlist = getunitswithverb("orbit")
+
+			print("running orbit")
             
             for unitid, parentlist, orbitname in getunitswithverb("orbit") do
 				local sleeping = false
