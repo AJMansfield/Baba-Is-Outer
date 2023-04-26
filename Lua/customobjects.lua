@@ -72,13 +72,11 @@ local customobjects = {}
 customobjects.tileorder =
 {
     "universe_eye",
-	"text_eye",
 	"nomai",
 	"text_nomai",
 	"traveler",
 	"text_traveler",
 	"anglerfish_monster",
-	"text_monster",
 }
 
 -- Defines custom objects.
@@ -87,7 +85,6 @@ customobjects.tileorder =
 -- please change customobjects.tileorder instead.
 customobjects.tiles =
 {
-	[1] =
 	{
 		name = "eye",
 		listname = "universe_eye",
@@ -100,7 +97,6 @@ customobjects.tiles =
         sprite = "universe_eye",
 		sprite_in_root = false,
 	},
-	[2] =
 	{
 		name = "nomai",
 		unittype = "object",
@@ -111,7 +107,6 @@ customobjects.tiles =
 		colour = {0, 3},
 		sprite_in_root = false,
 	},
-	[3] =
 	{
 		name = "text_nomai",
 		unittype = "text",
@@ -123,7 +118,6 @@ customobjects.tiles =
 		colour_active = {4, 1},
 		sprite_in_root = false,
 	},
-	[4] =
 	{
 		name = "traveler",
 		unittype = "object",
@@ -135,7 +129,6 @@ customobjects.tiles =
         sprite = "hearthian",
 		sprite_in_root = false,
 	},
-	[5] =
 	{
 		name = "text_traveler",
 		unittype = "text",
@@ -147,12 +140,11 @@ customobjects.tiles =
 		colour_active = {1, 2},
 		sprite_in_root = false,
 	},
-	[6] =
 	{
 		name = "monster",
 		listname = "anglerfish_monster",
 		unittype = "object",
-		tags = {"animal","outer wilds"},
+		tags = {"danger","animal","outer wilds"},
 		tiling = 2,
 		type = 0,
 		layer = 18,
@@ -165,7 +157,7 @@ customobjects.tiles =
 -- Set the custom object index prefix.
 -- This is to ensure that official objects' indices don't clash with custom ones.
 -- Changing it after you have added custom objects to a level may cause errors.
-customobjects.prefix = "aj"
+customobjects.prefix = "aj_"
 
 ----------------
 -- Functionality
@@ -209,8 +201,8 @@ local function addtiles(tiles, tileorder, prefix)
 	end
 
 	-- Add custom objects to the object list
-	for i, tile in pairs(tiles) do
-		local index = prefix..i
+	for _, tile in pairs(tiles) do
+		local index = prefix..(tile.listname or tile.name)
 		editor_objlist[index] = tile
 	end
 
