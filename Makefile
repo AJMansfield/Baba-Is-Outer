@@ -13,7 +13,7 @@ SPRITE_SCRIPT = --script $(TOOL_DIR)/baba_sprite_export.lua
 SPRITE_SOURCES = $(wildcard aseprite/*.aseprite)
 SPRITE_OBJECTS = $(patsubst aseprite/%.aseprite,$(SPRITE_DIR)/%_0_1.png,$(SPRITE_SOURCES))
 
-$(SPRITE_DIR)/%_0_1.png: aseprite/%.aseprite
+$(SPRITE_DIR)/%_0_1.png: aseprite/%.aseprite $(TOOL_DIR)/aseprite.sh $(TOOL_DIR)/baba_sprite_export.lua
 	$(ASEPRITE) $< $(SPRITE_SCRIPT)
 	mkdir -p $(SPRITE_DIR)
 	mv $(patsubst %.aseprite,%_out,$<)/*.png $(SPRITE_DIR)
@@ -29,7 +29,7 @@ FILES = $(DEPS)
 DEPS  += $(SPRITE_OBJECTS)
 FILES += $(wildcard $(SPRITE_DIR)/*.png)
 
-$(PACK_NAME).zip: all
+$(PACK_NAME).zip: all $(TOOL_DIR)/mkzip.sh
 	@for f in $(FILES) ; do \
 		echo install -D $$f $(PACK_NAME)/$$f ; \
 		install -D $$f $(PACK_NAME)/$$f ; \
