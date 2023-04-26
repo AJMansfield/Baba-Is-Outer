@@ -61,6 +61,4 @@ function calc_orbit_step(rx,ry, reverse)
 	assert(new_r == r, "Orbital Drift Detected: "..table.concat({rx,ry,r,octant,nx,ny,new_r},","))
 
 	return steps
-
-	return dx, dy
 end
