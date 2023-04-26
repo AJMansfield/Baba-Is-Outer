@@ -4,7 +4,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 	local debug_moves = 0
 	
 	local take = 1
-	local takecount = 8
+	local takecount = 9
 	local finaltake = false
 	local no3d = no3d_ or false
 	local playerid = playerid_ or 1
@@ -441,6 +441,40 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 					end
 				end
 			end
+--- BEGIN PATCH ---
+        elseif (take == 9) then -- cloned from fear
+            local orbitlist = getunitswithverb("orbit")
+            
+            for unitid, parentlist, orbitname in getunitswithverb("orbit") do
+				local sleeping = false
+				local unit = mmf.newObject(unitid)
+				local unitname = getname(unit)
+				local sleep = hasfeature(unitname,"is","sleep",uid)
+				local still = cantmove(unitname,uid,orbitdir)
+				local reverse = (reversecheck(unitid,0,x,y) ~= 0)
+				local ux,uy = unit.values[XPOS],unit.values[YPOS]
+				
+				if (sleep ~= nil) or still then
+					sleeping = true
+				else
+					for parentid in parentlist do
+						local parent = mmf.newObject(parentid)
+						local px,py = parent.values[XPOS],parent.values[YPOS]
+
+						for dir in calc_orbit_step(ux-px, uy-py, reverse) do
+							if (sleeping == false) then
+								table.insert(moving_units, {unitid = unitid, reason = "orbit", state = 0, moves = 1, dir = dir, xpos = ux, ypos = uy})
+                                been_seen[unitid] = #moving_units
+                            else
+                                local id = been_seen[unitid]
+                                local this = moving_units[unitid]
+                                this.moves = this.moves + 1
+                            end
+                        end
+                    end
+                end
+            end
+--- END PATCH ---
 		else
 			for i,data in ipairs(still_moving) do
 				if (data.unitid ~= 2) then
