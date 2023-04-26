@@ -115,6 +115,12 @@ customobjects.prefix = "mod"
 -- Functionality
 ----------------
 
+local function complain_if(v, ...)
+    if v do
+        warn(unpack(arg))
+    end
+end
+
 local function addtiles(tiles, tileorder, prefix)
 	-- Assert tile order is formatted correctly
 	for _, tile in pairs(tiles) do
@@ -123,7 +129,7 @@ local function addtiles(tiles, tileorder, prefix)
 		for _, tilename in pairs(tileorder) do
 			contains = contains or tile.name == tilename
 		end
-		assert(contains, "Missing object from tile order: "..tile.name)
+		complain_if(contains, "Missing object from tile order: "..tile.name)
 	end
 
 	local previndex = {}
@@ -133,12 +139,12 @@ local function addtiles(tiles, tileorder, prefix)
 		for _, tile in pairs(tiles) do
 			contains = contains or tilename == tile.name
 		end
-		assert(contains, "Nonexistent object in tile order: "..tilename)
+		complain_if(contains, "Nonexistent object in tile order: "..tilename)
 
 		-- Ensure no duplicates
 		local nodupes = (previndex[tilename] == nil)
 		previndex[tilename] = true
-		assert(nodupes, "Duplicate object in tile order: "..tilename)
+		complain_if(nodupes, "Duplicate object in tile order: "..tilename)
 	end
 
 	-- Add custom objects to the order in the object list
