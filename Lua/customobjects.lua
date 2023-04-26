@@ -96,7 +96,7 @@ customobjects.tiles =
 		type = 0,
 		layer = 16,
 		colour = {0, 1},
-        sprite = "universe_eye"
+        sprite = "universe_eye",
 		sprite_in_root = false,
 	},
 	[2] =
@@ -131,7 +131,7 @@ customobjects.tiles =
 		type = 0,
 		layer = 18,
 		colour = {3, 2},
-        sprite = "hearthian"
+        sprite = "hearthian",
 		sprite_in_root = false,
 	},
 	[5] =
@@ -155,7 +155,7 @@ customobjects.tiles =
 		type = 0,
 		layer = 18,
 		colour = {4, 2},
-        sprite = "anglerfish"
+        sprite = "anglerfish",
 		sprite_in_root = false,
 	},
 }
