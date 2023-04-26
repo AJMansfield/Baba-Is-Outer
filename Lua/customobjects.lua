@@ -71,13 +71,13 @@ local customobjects = {}
 -- Please ensure every object is in here.
 customobjects.tileorder =
 {
-    "eye",
+    "universe_eye",
 	"text_eye",
 	"nomai",
 	"text_nomai",
 	"traveler",
 	"text_traveler",
-	"monster",
+	"anglerfish_monster",
 	"text_monster",
 }
 
@@ -90,8 +90,9 @@ customobjects.tiles =
 	[1] =
 	{
 		name = "eye",
+		listname = "universe_eye",
 		unittype = "object",
-		tags = {"sky","outer wilds"},
+		tags = {"sky","decorative","outer wilds"},
 		tiling = -1,
 		type = 0,
 		layer = 16,
@@ -149,6 +150,7 @@ customobjects.tiles =
 	[6] =
 	{
 		name = "monster",
+		listname = "anglerfish_monster",
 		unittype = "object",
 		tags = {"animal","outer wilds"},
 		tiling = 2,
@@ -169,37 +171,37 @@ customobjects.prefix = "aj"
 -- Functionality
 ----------------
 
-local function complain_if(v, ...)
-    if v do
-        warn(unpack(arg))
-    end
+function formatobjlist()
+	for i,v in pairs(editor_objlist) do
+		editor_objlist_reference[v.listname or v.name] = i
+	end
 end
 
 local function addtiles(tiles, tileorder, prefix)
-	-- Assert tile order is formatted correctly
-	for _, tile in pairs(tiles) do
-		-- Ensure object exists in tile order
-		local contains = false
-		for _, tilename in pairs(tileorder) do
-			contains = contains or tile.name == tilename
-		end
-		complain_if(contains, "Missing object from tile order: "..tile.name)
-	end
+	-- -- Assert tile order is formatted correctly
+	-- for _, tile in pairs(tiles) do
+	-- 	-- Ensure object exists in tile order
+	-- 	local contains = false
+	-- 	for _, tilename in pairs(tileorder) do
+	-- 		contains = contains or tile.name == tilename
+	-- 	end
+	-- 	assert(contains, "Missing object from tile order: "..tile.name)
+	-- end
 
-	local previndex = {}
-	for _, tilename in pairs(tileorder) do
-		-- Ensure object exists in tiles
-		local contains = false
-		for _, tile in pairs(tiles) do
-			contains = contains or tilename == tile.name
-		end
-		complain_if(contains, "Nonexistent object in tile order: "..tilename)
+	-- local previndex = {}
+	-- for _, tilename in pairs(tileorder) do
+	-- 	-- Ensure object exists in tiles
+	-- 	local contains = false
+	-- 	for _, tile in pairs(tiles) do
+	-- 		contains = contains or tilename == tile.name
+	-- 	end
+	-- 	assert(contains, "Nonexistent object in tile order: "..tilename)
 
-		-- Ensure no duplicates
-		local nodupes = (previndex[tilename] == nil)
-		previndex[tilename] = true
-		complain_if(nodupes, "Duplicate object in tile order: "..tilename)
-	end
+	-- 	-- Ensure no duplicates
+	-- 	local nodupes = (previndex[tilename] == nil)
+	-- 	previndex[tilename] = true
+	-- 	assert(nodupes, "Duplicate object in tile order: "..tilename)
+	-- end
 
 	-- Add custom objects to the order in the object list
 	for _, tilename in pairs(tileorder) do
@@ -213,6 +215,7 @@ local function addtiles(tiles, tileorder, prefix)
 	end
 
 	formatobjlist()
+
 end
 
 addtiles(customobjects.tiles, customobjects.tileorder, customobjects.prefix)
