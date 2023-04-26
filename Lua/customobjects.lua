@@ -71,8 +71,14 @@ local customobjects = {}
 -- Please ensure every object is in here.
 customobjects.tileorder =
 {
-	"custom",
-	"text_custom",
+    "eye",
+	"text_eye",
+	"nomai",
+	"text_nomai",
+	"traveler",
+	"text_traveler",
+	"monster",
+	"text_monster",
 }
 
 -- Defines custom objects.
@@ -83,25 +89,73 @@ customobjects.tiles =
 {
 	[1] =
 	{
-		name = "custom",
+		name = "eye",
 		unittype = "object",
-		tags = {"animal","common"},
-		tiling = 2,
+		tags = {"sky","outer wilds"},
+		tiling = -1,
 		type = 0,
-		layer = 17,
-		colour = {4, 4},
+		layer = 16,
+		colour = {0, 1},
+        sprite = "universe_eye"
 		sprite_in_root = false,
 	},
 	[2] =
 	{
-		name = "text_custom",
+		name = "nomai",
+		unittype = "object",
+		tags = {"animal","outer wilds"},
+		tiling = 2,
+		type = 0,
+		layer = 18,
+		colour = {0, 3},
+		sprite_in_root = false,
+	},
+	[3] =
+	{
+		name = "text_nomai",
 		unittype = "text",
-		tags = {"animal","common"},
+		tags = {"animal","outer wilds"},
 		tiling = -1,
 		type = 0,
 		layer = 20,
-		colour = {4, 3},
-		colour_active = {4, 4},
+		colour = {4, 0},
+		colour_active = {4, 1},
+		sprite_in_root = false,
+	},
+	[4] =
+	{
+		name = "traveler",
+		unittype = "object",
+		tags = {"animal","outer wilds"},
+		tiling = 2,
+		type = 0,
+		layer = 18,
+		colour = {3, 2},
+        sprite = "hearthian"
+		sprite_in_root = false,
+	},
+	[5] =
+	{
+		name = "text_traveler",
+		unittype = "text",
+		tags = {"animal","outer wilds"},
+		tiling = -1,
+		type = 0,
+		layer = 20,
+		colour = {1, 1},
+		colour_active = {1, 2},
+		sprite_in_root = false,
+	},
+	[6] =
+	{
+		name = "monster",
+		unittype = "object",
+		tags = {"animal","outer wilds"},
+		tiling = 2,
+		type = 0,
+		layer = 18,
+		colour = {4, 2},
+        sprite = "anglerfish"
 		sprite_in_root = false,
 	},
 }
@@ -109,7 +163,7 @@ customobjects.tiles =
 -- Set the custom object index prefix.
 -- This is to ensure that official objects' indices don't clash with custom ones.
 -- Changing it after you have added custom objects to a level may cause errors.
-customobjects.prefix = "mod"
+customobjects.prefix = "aj"
 
 ----------------
 -- Functionality
