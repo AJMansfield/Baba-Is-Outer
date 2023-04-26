@@ -43,7 +43,7 @@ edit: $(PACK_NAME).zip # copy the level data into the level editor world path
 
 save: # copy any modified level editor data back into the repo
 	$(TOOL_DIR)/save.sh "$(BABA_EDIT_PATH)"
-	$(TOOL_DIR)/sort_ld.sh *.ld
+	$(TOOL_DIR)/sort_ld.sh *.ld world_data.txt
 
 package: $(PACK_NAME).zip
 
