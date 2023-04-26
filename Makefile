@@ -49,10 +49,16 @@ package: $(PACK_NAME).zip
 install: $(PACK_NAME).zip
 	cp -r $(PACK_NAME) -T "$(BABA_INSTALL_PATH)"
 
+sc_install: $(wildcard Lua/*) $(wildcard Lua/*/*)
+	@for f in $^ ; do \
+		echo install -D $$f "$(BABA_INSTALL_PATH)/$$f" ; \
+		install -D $$f "$(BABA_INSTALL_PATH)/$$f" ; \
+	done
+
 clean:
 	rm -f Sprites/*
 	rm -f $(PACK_NAME).zip
 	rm -rdf $(PACK_NAME)/
 	rm -rdf *_out/
 
-.PHONY: all edit save package install clean
+.PHONY: all edit save package install clean sc_install
