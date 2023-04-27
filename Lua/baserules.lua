@@ -25,34 +25,6 @@ local mod_config = {
     problem. So to be on the safe side, make sure you have at least one text object in you level.
  ]]
 local persist_baserules = {
-    "text is not push",
-    "text on tile is hide",
-    "tile is hide",
-
-    "text on belt is nudgeright",
-    "text on bug is nudgeleft",
-    "bug is you",
-    "belt near bug is you",
-    "bug is lockedleft",
-    "bug is lockedright",
-    "belt is lockedleft",
-    "belt is lockedright",
-    "bug is hide",
-    "belt is hide",
-
-    "text on bird is nudgedown",
-    "text on me is nudgeup",
-    "me is you",
-    "bird near me is you",
-    "me is lockedup",
-    "me is lockeddown",
-    "bird is lockedup",
-    "bird is lockeddown",
-    "me is hide",
-    "bird is hide",
-
-    "pipe is stop",
-    "pipe is hide"
 }
 
 
@@ -89,6 +61,36 @@ local persist_baserules = {
         }
  ]]
 local levelpack_baserules = {
+    space = {
+        "text is not push",
+        "text on tile is hide",
+        "tile is hide",
+
+        "text on belt is nudgeright",
+        "text on bug is nudgeleft",
+        "bug is you",
+        "belt near bug is you",
+        "bug is lockedleft",
+        "bug is lockedright",
+        "belt is lockedleft",
+        "belt is lockedright",
+        "bug is hide",
+        "belt is hide",
+
+        "text on bird is nudgedown",
+        "text on me is nudgeup",
+        "me is you",
+        "bird near me is you",
+        "me is lockedup",
+        "me is lockeddown",
+        "bird is lockedup",
+        "bird is lockeddown",
+        "me is hide",
+        "bird is hide",
+
+        "pipe is stop",
+        "pipe is hide"
+    }
 }
 
 
