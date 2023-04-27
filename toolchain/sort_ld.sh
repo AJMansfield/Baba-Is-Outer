@@ -1,9 +1,30 @@
 #!/bin/bash
 
-# set -x
+set -x
 
 get_labels(){
-    awk -F'[\\[\\]]' '{if ( NF>1 ) { print $2 }}'
+    awk -F'[\\[\\]]' 'BEGIN { ORS = " " } {if ( NF>1 ) { print $2 }}'
+}
+
+sort_labels(){
+    present=($*)
+    order=(general images levels tiles currobjlist icons hotbar)
+    # first, run through the order and echo any that are present in the file
+    for label in ${order[@]}
+    do
+        if [[ " ${present[*]} " =~ " $label " ]]
+        then
+            echo -n "$label "
+        fi
+    done
+    # then, run through all the labels and echo any that weren't specified in the order
+    for label in ${present[@]}
+    do
+        if [[ ! " ${order[*]} " =~ " $label " ]]
+        then
+            echo -n "$label "
+        fi
+    done
 }
 
 get_segment(){
@@ -22,16 +43,28 @@ reformat_segment(){
 
 reformat_file(){
     file="$1"
-    for label in $(<"$file" get_labels)
+    labels=($(<"$file" get_labels))
+    labels=($(sort_labels ${labels[@]}))
+    for label in ${labels[@]}
     do
         <"$file" reformat_segment "$label"
     done
 }
 
-for file in $@
-do
+mk_temp(){
     temp=$(mktemp)
+    mk_temp_exit() {
+        rm -rf "$temp"
+    }
+    trap mk_temp_exit EXIT
+    echo "$temp"
+}
+
+for file in $@
+do (
+    temp=$(mk_temp)
     cat "$file" > $temp
     reformat_file $temp >"$file"
     rm $temp
+)
 done
