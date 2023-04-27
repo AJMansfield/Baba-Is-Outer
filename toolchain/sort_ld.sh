@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 get_labels(){
     awk -F'[\\[\\]]' 'BEGIN { ORS = " " } {if ( NF>1 ) { print $2 }}'
