@@ -292,7 +292,7 @@ function calc_orbit_step(x,y, reverse)
 		local ny = y+dy
 		local nr = hyp(nx,ny)
 
-		local loss = 10 * math.abs(math.floor(nr)-math.floor(r)) + math.abs(nr-r)
+		local loss = 10 * math.abs(round(nr)-round(r)) + math.abs(nr-round(r))
 
 		if loss < best_loss then
 			best_loss = loss
@@ -309,16 +309,16 @@ function calc_orbit_step(x,y, reverse)
 		radius_step = step_y(y,by)
 	end
 
-	if (math.floor(br) ~= math.floor(r)) then
-		print("Orbital Drift:")
-		vprint("rr",r)
-		vprint("rx",rx)
-		vprint("ry",ry)
-		vprint("nr",new_r)
-		vprint("nx",nx)
-		vprint("ny",ny)
-		radius_step = -1
-	end
+	-- if (math.floor(br) ~= math.floor(r)) then
+	-- 	print("Orbital Drift:")
+	-- 	vprint("rr",r)
+	-- 	vprint("rx",rx)
+	-- 	vprint("ry",ry)
+	-- 	vprint("nr",nr)
+	-- 	vprint("nx",nx)
+	-- 	vprint("ny",ny)
+	-- 	radius_step = -1
+	-- end
 
 	return tangent_step, radius_step
 end
@@ -326,7 +326,9 @@ end
 
 
 function vprint(name, value)
-	if  type(value) == "table" then
+	if value == nil then
+		print(name .. " = nil")
+	elseif type(value) == "table" then
 		print(name .. " = ")
 		tprint(value, 1)
 	elseif type(value) == 'boolean' then
