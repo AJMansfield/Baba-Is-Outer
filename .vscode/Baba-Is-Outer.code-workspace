@@ -421,6 +421,7 @@
 			"setupvision_wall",          // vision.lua:670
 			"visiontiling",              // vision.lua:696
 			"mod_hook_functions",
+			"mmf",
 		],
 		"Lua.diagnostics.disable": ["lowercase-global"],
 		"Lua.diagnostics.libraryFiles": "Disable",
