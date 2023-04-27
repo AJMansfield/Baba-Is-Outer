@@ -1,105 +1,111 @@
 
 
-cached_tangent_moves = {}
+cached_moving_units = {}
 function orbit_take(moving_units, been_seen)
 	local lhs_names = findfeature(nil,"orbit",nil,true)
 	if (lhs_names == nil) then
 		return
 	end
 
-	vprint("orbit_rules", lhs_names)
+	-- vprint("orbit_rules", lhs_names)
 
 	for i, lhs_name in ipairs(lhs_names) do
-		orbit_each_lhs_name_around(lhs_name, moving_units, been_seen)
+		orbit_each_lhs_name_around(lhs_name, moving_units)
 	end
 
-	
+	-- vprint("moving_units", moving_units)
+end
+
+function orbit_radius_take(moving_units, been_seen)
+	cached_moving_units = {}
+	orbit_take(cached_moving_units, been_seen)
+
+	filter_moves(cached_moving_units, "orbit_radius", moving_units)
+	print("Submitting Radial Moves:")
 	vprint("moving_units", moving_units)
 end
-table.insert(mod_hook_functions["movement_take"], orbit_take)
 
--- function orbit_tangent_take(moving_units, been_seen)
--- 	local lhs_names = findfeature(nil,"orbit",nil,true)
--- 	if (lhs_names == nil) then
--- 		return
--- 	end
-
--- 	vprint("orbit_rules", lhs_names)
-
--- 	for i, lhs_name in ipairs(lhs_names) do
--- 		orbit_each_lhs_name_around(lhs_name, moving_units, been_seen)
--- 	end
-
-	
--- 	vprint("moving_units", moving_units)
--- end
--- table.insert(mod_hook_functions["movement_take"], orbit_tangent_take)
-
-function bsid_key(move)
-	local hashcode = 0
-	
-	hashcode = hashcode + move.unitid
-	hashcode = hashcode * 2
-	if move.reason == "orbit_radius" then
-		hashcode = hashcode + 2000
-	end
-	return hashcode
+function orbit_tangent_take(moving_units, been_seen)
+	filter_moves(cached_moving_units, "orbit_tangent", moving_units)
+	print("Submitting Tangential Moves:")
+	vprint("moving_units", moving_units)
 end
 
-function insert_move(move, moving_units, been_seen)
-	print("Inserting Move!")
-	vprint("new move", move)
-	local bsid = bsid_key(move)
-	vprint("bsid", bsid)
-	if move.dir < 0 then
+table.insert(mod_hook_functions["movement_take"], orbit_radius_take)
+table.insert(mod_hook_functions["movement_take"], orbit_tangent_take)
+
+function insert_move(move, moving_units)
+	-- print("Inserting Move!")
+	-- vprint("move", move)
+
+	if move == nil or move.dir < 0 then
+		-- print("skipping insert move")
 		return
 	end
-	if been_seen[bsid] == nil then
-		table.insert(moving_units, move)
-		been_seen[bsid] = #moving_units
-		vprint("key", #moving_units)
-	else
-		local key = been_seen[bsid]
-		vprint("key", key)
-		local this = moving_units[key]
-		vprint("existing", this)
-		if this == nil then
-			moving_units[key] = move
-		elseif this.dir == move.dir then
-			this.moves = this.moves + move.moves
-		elseif this.dir == reversedir(move.dir) then
-			if this.moves > move.moves then
+
+	local done = false
+
+	for i, this in ipairs(moving_units) do
+		if this.unitid == move.unitid and this.xpos == move.xpos and this.ypos == move.ypos and this.reason == move.reason then
+			-- print("found match")
+			if this.dir == move.dir then
+				-- print("adding to existing move")
+				this.moves = this.moves + move.moves
+				done = true
+				break
+			elseif this.dir == reversedir(move.dir) then
+				-- print("subtracting from existing move")
 				this.moves = this.moves - move.moves
-			elseif this.moves == move.moves then
-				moving_units[key] = nil
-			elseif this.moves < move.moves then
-				move.moves = move.moves - this.moves
-				moving_units[key] = move
+				if this.moves < 0 then
+					-- print("flipping existing move")
+					this.moves = - this.moves
+					this.dir = reversedir(this.dir)
+				end
+				done = true
+				break
+			else
+				-- print("orthogonal")
 			end
 		end
-		vprint("final", moving_units[key])
+	end
+
+	if done == false then
+		-- print("inserting new move")
+		table.insert(moving_units, move)
 	end
 end
 
+function filter_moves(moving_units, reason, outtable)
+	if outtable == nil then
+		outtable = {}
+	end
+	for i, move in ipairs(moving_units) do
+		if move.reason == reason and move.dir >= 0 and move.moves > 0 then
+			table.insert(outtable, move)
+		end
+	end
+	return outtable
+end
 
-function orbit_each_lhs_name_around(lhs_name, moving_units, been_seen)
-	vprint("lhs_name", lhs_name)
+
+function orbit_each_lhs_name_around(lhs_name, moving_units)
+	-- vprint("lhs_name", lhs_name)
 
 	local lhs_uid_list = findall(lhs_name)
 
-	vprint("lhs_uid_list", lhs_uid_list)
+	-- vprint("lhs_uid_list", lhs_uid_list)
 
 	if (#lhs_uid_list == 0) then
-		print("no lhs objects found")
+		-- print("no lhs objects found")
 		return
 	end
 
 	for i,lhs_uid in ipairs(lhs_uid_list) do
-		orbit_each_lhs_around(lhs_uid, moving_units, been_seen)
+		orbit_each_lhs_around(lhs_uid, moving_units)
 	end
 end
-function orbit_each_lhs_around(lhs_uid, moving_units, been_seen)
-	vprint("lhs_uid", lhs_uid)
+function orbit_each_lhs_around(lhs_uid, moving_units)
+	-- vprint("lhs_uid", lhs_uid)
 	if issleep(lhs_uid) then
 		return
 	end
@@ -110,7 +116,7 @@ function orbit_each_lhs_around(lhs_uid, moving_units, been_seen)
 		return
 	end
 	
-	vprint("lhs_unit", lhs_unit)
+	-- vprint("lhs_unit", lhs_unit)
 	local lhs_name =lhs_unit.strings[UNITNAME]
 	local applicable_rules = {}
 
@@ -118,7 +124,7 @@ function orbit_each_lhs_around(lhs_uid, moving_units, been_seen)
 		lhs_name = "text"
 	end
 
-	vprint("featureindex["..lhs_name.."]", featureindex[lhs_name])
+	-- vprint("featureindex["..lhs_name.."]", featureindex[lhs_name])
 
 	if (featureindex[lhs_name] ~= nil) then					
 		for i,rule_info in ipairs(featureindex[lhs_name]) do
@@ -135,24 +141,24 @@ function orbit_each_lhs_around(lhs_uid, moving_units, been_seen)
 		end
 	end
 
-	vprint("applicable_rules", applicable_rules)
+	-- vprint("applicable_rules", applicable_rules)
 
 	local rhs_names = xthis(applicable_rules, lhs_name, "orbit")
 
 	for i,rhs_name in ipairs(rhs_names) do
-		orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units, been_seen)
+		orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units)
 	end
 
 end
-function orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units, been_seen)
+function orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units)
 	local rhs_uid_list = findall({rhs_name})
-	vprint("rhs_uid_list", rhs_uid_list)
+	-- vprint("rhs_uid_list", rhs_uid_list)
 	
 	for i,rhs_uid in ipairs(rhs_uid_list) do
-		orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units, been_seen)
+		orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units)
 	end
 end
-function orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units, been_seen)
+function orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units)
 	local lhs_unit = mmf.newObject(lhs_uid)
 	local rhs_unit = mmf.newObject(rhs_uid)
 
@@ -160,13 +166,13 @@ function orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units, been_seen)
 	local rx,ry,rd = rhs_unit.values[XPOS],rhs_unit.values[YPOS],rhs_unit.values[DIR]
 
 	local lhs_is_reverse = (reversecheck(lhs_uid,ld,lx,ly) ~= ld)
-	vprint("lhs_is_reverse", lhs_is_reverse)
+	-- vprint("lhs_is_reverse", lhs_is_reverse)
 
 	local tangent_step, radius_step = calc_orbit_step(lx-rx, ly-ry, lhs_is_reverse)
 
 	if isstill_or_locked(lhs_uid, lx, ly, ld) == false then
-		insert_move({unitid = lhs_uid, reason = "orbit_tangent", state = 0, moves = 1, dir = tangent_step, xpos = lx, ypos = ly}, moving_units, been_seen)
-		insert_move({unitid = lhs_uid, reason = "orbit_radius", state = 0, moves = 1, dir = radius_step, xpos = lx, ypos = ly}, moving_units, been_seen)
+		insert_move({unitid = lhs_uid, reason = "orbit_tangent", state = 0, moves = 1, dir = tangent_step, xpos = lx, ypos = ly}, moving_units)
+		insert_move({unitid = lhs_uid, reason = "orbit_radius", state = 0, moves = 1, dir = radius_step, xpos = lx, ypos = ly}, moving_units)
 	end
 end
 
@@ -232,9 +238,9 @@ local function calc_octant(x, y)
 		end
 	end
 	
-	vprint("x", x)
-	vprint("y", y)
-	vprint("octant", result)
+	-- vprint("x", x)
+	-- vprint("y", y)
+	-- vprint("octant", result)
 
 	return result
 end
@@ -243,11 +249,6 @@ function calc_orbit_step(rx,ry, reverse)
 	local radius_step = -1
 	local r = math.floor(hyp(rx, ry))
 	local octant = calc_octant(rx, ry)
-	
-	vprint("rx", rx)
-	vprint("ry", ry)
-	vprint("r", r)
-	vprint("octant", octant)
 
 	local nx, ny = rx, ry
 
