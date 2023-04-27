@@ -1,0 +1,429 @@
+{
+	"folders": [
+		{
+			"name": "Project",
+			"path": ".."
+		},
+		{
+			"name": "Baba",
+			"path": "C:/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"${workspaceFolder:Baba}/Worlds/": true,
+		},
+		"Lua.runtime.path": [
+			"?.lua",
+			"?/init.lua",
+			"${workspaceFolder:Baba}/?.lua",
+			"${workspaceFolder:Baba}/Editor/?.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials?.lua",
+		],
+		"Lua.workspace.library": [
+			"${workspaceFolder:Baba}/blocks.lua",
+			"${workspaceFolder:Baba}/changes.lua",
+			"${workspaceFolder:Baba}/clears.lua",
+			"${workspaceFolder:Baba}/colours.lua",
+			"${workspaceFolder:Baba}/conditions.lua",
+			"${workspaceFolder:Baba}/constants.lua",
+			"${workspaceFolder:Baba}/convert.lua",
+			"${workspaceFolder:Baba}/debug.lua",
+			"${workspaceFolder:Baba}/dynamictiling.lua",
+			"${workspaceFolder:Baba}/effects.lua",
+			"${workspaceFolder:Baba}/ending.lua",
+			"${workspaceFolder:Baba}/features.lua",
+			"${workspaceFolder:Baba}/letterunits.lua",
+			"${workspaceFolder:Baba}/load.lua",
+			"${workspaceFolder:Baba}/map.lua",
+			"${workspaceFolder:Baba}/mapcursor.lua",
+			"${workspaceFolder:Baba}/menu.lua",
+			"${workspaceFolder:Baba}/metadata.lua",
+			"${workspaceFolder:Baba}/modsupport.lua",
+			"${workspaceFolder:Baba}/movement.lua",
+			"${workspaceFolder:Baba}/rules.lua",
+			"${workspaceFolder:Baba}/syntax.lua",
+			"${workspaceFolder:Baba}/tools.lua",
+			"${workspaceFolder:Baba}/undo.lua",
+			"${workspaceFolder:Baba}/update.lua",
+			"${workspaceFolder:Baba}/utf_decoder.lua",
+			"${workspaceFolder:Baba}/values.lua",
+			"${workspaceFolder:Baba}/vision.lua",
+	
+			"${workspaceFolder:Baba}/Editor/editor.lua",
+			"${workspaceFolder:Baba}/Editor/editor_constants.lua",
+			"${workspaceFolder:Baba}/Editor/editor_menudata.lua",
+			"${workspaceFolder:Baba}/Editor/editor_objectlist.lua",
+			"${workspaceFolder:Baba}/Editor/editor_objectlist_func.lua",
+			"${workspaceFolder:Baba}/Editor/editor_tutorial.lua",
+			"${workspaceFolder:Baba}/Editor/editor_undo.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto1.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto10.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto2.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto3.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto4.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto5.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto6.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto7.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto8.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tuto9.lua",
+			"${workspaceFolder:Baba}/Editor/Tutorials/tutodata.lua",
+
+			"${workspaceFolder:Project}/Lua/based.lua",
+		],
+		"Lua.diagnostics.globals": [
+			"effectblock",               // blocks.lua:1
+			"brokenblock",               // blocks.lua:155
+			"statusblock",               // blocks.lua:181
+			"moveblock",                 // blocks.lua:392
+			"fallblock",                 // blocks.lua:848
+			"block",                     // blocks.lua:1123
+			"handledels",                // blocks.lua:1849
+			"startblock",                // blocks.lua:1873
+			"visionblock",               // blocks.lua:1987
+			"levelblock",                // blocks.lua:1996
+			"findplayer",                // blocks.lua:3449
+			"diceblock",                 // blocks.lua:3535
+			"savechange",                // changes.lua:1
+			"storechanges",              // changes.lua:351
+			"restoredefaults",           // changes.lua:422
+			"dospritechanges",           // changes.lua:535
+			"dochanges",                 // changes.lua:574
+			"dochanges_allinstances",    // changes.lua:658
+			"dochanges_full",            // changes.lua:667
+			"resetchanges_objname",      // changes.lua:689
+			"resetchanges",              // changes.lua:697
+			"addchange",                 // changes.lua:781
+			"getactualdata",             // changes.lua:819
+			"getactualdata_objlist",     // changes.lua:864
+			"editor_resetobject",        // changes.lua:965
+			"handleobjectchanges",       // changes.lua:1051
+			"clearunits",                // clears.lua:1
+			"smallclear",                // clears.lua:69
+			"clear",                     // clears.lua:88
+			"setcolour",                 // colours.lua:1
+			"getcolour",                 // colours.lua:54
+			"getuicolour",               // colours.lua:98
+			"updatecolours",             // colours.lua:114
+			"addobjectcolour",           // colours.lua:143
+			"getobjectcolour",           // colours.lua:153
+			"updateunitcolour",          // colours.lua:180
+			"updateallcolours",          // colours.lua:202
+			"setthisuicolour",           // colours.lua:211
+			"setbackcolour",             // colours.lua:225
+			"testcond",                  // conditions.lua:1
+			"conversion",                // convert.lua:1
+			"convert",                   // convert.lua:86
+			"doconvert",                 // convert.lua:264
+			"dolevelconversions",        // convert.lua:549
+			"handleconvertedlevels",     // convert.lua:715
+			"convertlevel",              // convert.lua:723
+			"objlist_debug",             // debug.lua:1
+			"listrules",                 // debug.lua:18
+			"menudebug",                 // debug.lua:79
+			"editordebug",               // debug.lua:87
+			"restore",                   // debug.lua:115
+			"debugfunction",             // debug.lua:129
+			"timedmessage",              // debug.lua:160
+			"debugpoint",                // debug.lua:166
+			"fixspriteroot",             // debug.lua:176
+			"dynamictile",               // dynamictiling.lua:1
+			"dynamictiling",             // dynamictiling.lua:97
+			"dynamic",                   // dynamictiling.lua:108
+			"dynamicat",                 // dynamictiling.lua:154
+			"setspecialtiling",          // dynamictiling.lua:185
+			"handlespecialtiling",       // dynamictiling.lua:190
+			"effects",                   // effects.lua:1
+			"effects_decors",            // effects.lua:26
+			"shorteffectblock",          // effects.lua:31
+			"doeffect",                  // effects.lua:37
+			"domaprotation",             // effects.lua:159
+			"levelparticles",            // effects.lua:202
+			"dotransition",              // effects.lua:261
+			"particles",                 // effects.lua:374
+			"doparticles",               // effects.lua:381
+			"adddecor",                  // effects.lua:440
+			"unitcoloureffect",          // effects.lua:515
+			"doshorteffect",             // effects.lua:546
+			"ending",                    // ending.lua:1
+			"ending_load",               // ending.lua:626
+			"allisdone",                 // ending.lua:645
+			"dointro",                   // ending.lua:772
+			"ending",                    // ending.lua:1159
+			"findfeature",               // features.lua:1
+			"findfeatureat",             // features.lua:101
+			"hasfeature",                // features.lua:146
+			"findallfeature",            // features.lua:245
+			"getunitswitheffect",        // features.lua:319
+			"getunitswithverb",          // features.lua:379
+			"getunitverbtargets",        // features.lua:468
+			"hasfeature_count",          // features.lua:542
+			"formlettermap",             // letterunits.lua:1
+			"cullnotes",                 // letterunits.lua:109
+			"formletterunits",           // letterunits.lua:169
+			"findletterwords",           // letterunits.lua:330
+			"init",                      // load.lua:1
+			"resetlogrules",             // load.lua:115
+			"setupbaserules",            // load.lua:121
+			"setupmenu",                 // load.lua:127
+			"generatetiles",             // load.lua:187
+			"worldinit",                 // load.lua:228
+			"createobjectpalette",       // load.lua:261
+			"loadpathgate",              // load.lua:279
+			"loadtile",                  // load.lua:311
+			"loadtile_oldlevel",         // load.lua:322
+			"firstlevel",                // load.lua:464
+			"loadcustomobjects",         // load.lua:498
+			"createcobjectlist",         // load.lua:520
+			"sublevel",                  // map.lua:4
+			"uplevel",                   // map.lua:81
+			"changelevel",               // map.lua:117
+			"handlecustomparent",        // map.lua:150
+			"collapseleveltree",         // map.lua:162
+			"resetleveltree",            // map.lua:181
+			"rebuildleveltree",          // map.lua:190
+			"refreshleveltree",          // map.lua:212
+			"storeleveltree",            // map.lua:239
+			"getlevelnumber",            // map.lua:265
+			"getlevelid",                // map.lua:309
+			"unlockeffect",              // map.lua:348
+			"unlocklevels",              // map.lua:699
+			"checkhidden",               // map.lua:762
+			"prizeget",                  // map.lua:790
+			"hiddendata",                // map.lua:799
+			"getleveltree",              // map.lua:899
+			"getleveltree_id",           // map.lua:917
+			"openlevels",                // map.lua:935
+			"addpath",                   // map.lua:964
+			"addspecial",                // map.lua:998
+			"loadlevelcompletion",       // map.lua:1013
+			"revealpaths",               // map.lua:1042
+			"opengate",                  // map.lua:1160
+			"mapunlock",                 // map.lua:1192
+			"mapunlock_transition",      // map.lua:1323
+			"getgates",                  // map.lua:1383
+			"gateunlock",                // map.lua:1401
+			"handlespecial",             // map.lua:1484
+			"checkmaplevel",             // map.lua:1621
+			"gateindicatorcheck",        // map.lua:1631
+			"rewritecontrolicontext",    // map.lua:1649
+			"customending_win",          // map.lua:1664
+			"displaysigntext",           // map.lua:1669
+			"specialroomscale",          // map.lua:1705
+			"getspecialroomscale",       // map.lua:1713
+			"mapcursor_load",            // mapcursor.lua:1
+			"mapcursor_idle",            // mapcursor.lua:112
+			"mapcursor_move",            // mapcursor.lua:171
+			"mapcursor_enter",           // mapcursor.lua:244
+			"mapcursor_set",             // mapcursor.lua:292
+			"mapcursor_hardset",         // mapcursor.lua:306
+			"mapcursor_levelstart",      // mapcursor.lua:323
+			"mapcursor_displayname",     // mapcursor.lua:342
+			"idleblockcheck",            // mapcursor.lua:368
+			"cursorcheck",               // mapcursor.lua:384
+			"mapcursor_tofront",         // mapcursor.lua:398
+			"hidecursor",                // mapcursor.lua:410
+			"mapcursor_setonlevel",      // mapcursor.lua:418
+			"writetext",                 // menu.lua:1
+			"erase",                     // menu.lua:335
+			"createbutton",              // menu.lua:341
+			"updatebuttontext",          // menu.lua:476
+			"updatebuttontext_lang",     // menu.lua:494
+			"updatebuttontext_fromlist", // menu.lua:513
+			"updatebuttoncolour",        // menu.lua:522
+			"slider",                    // menu.lua:536
+			"displaylevelname",          // menu.lua:587
+			"submenu",                   // menu.lua:646
+			"changemenu",                // menu.lua:702
+			"closemenu",                 // menu.lua:759
+			"scrollarea",                // menu.lua:830
+			"gettoggle",                 // menu.lua:857
+			"makeselection",             // menu.lua:878
+			"creditstext",               // menu.lua:907
+			"clearletters",              // menu.lua:920
+			"controlicon_editor",        // menu.lua:924
+			"createcontrolicon",         // menu.lua:1040
+			"updatecontrolicons",        // menu.lua:1193
+			"getcontrolname",            // menu.lua:1210
+			"getcontrolid",              // menu.lua:1217
+			"geticon",                   // menu.lua:1234
+			"undotooltip",               // menu.lua:1258
+			"menu_position",             // menu.lua:1358
+			"findmenupos",               // menu.lua:1401
+			"langtext",                  // menu.lua:1427
+			"langtext_multiple",         // menu.lua:1467
+			"hack_baba_world_langtext",  // menu.lua:1492
+			"introlangtext",             // menu.lua:1499
+			"menusetx",                  // menu.lua:1530
+			"buildmenustructure",        // menu.lua:1563
+			"rebuildmenu",               // menu.lua:1608
+			"collapsemenu",              // menu.lua:1627
+			"setupcontrolicon",          // menu.lua:1639
+			"getdynamicbuttonwidth",     // menu.lua:1767
+			"getdistancebetweenbuttons", // menu.lua:1797
+			"gettextwidth",              // menu.lua:1805
+			"findmaxtextwidth",          // menu.lua:1823
+			"wordwrap",                  // menu.lua:1835
+			"continuetext",              // menu.lua:1881
+			"geteditorkey_n",            // menu.lua:1931
+			"getmetadata",               // metadata.lua:1
+			"do_mod_hook",               // modsupport.lua:83
+			"buttonclicked",             // modsupport.lua:99
+			"setupmods_global",          // modsupport.lua:105
+			"setupmods_levelpack",       // modsupport.lua:116
+			"movecommand",               // movement.lua:1
+			"check",                     // movement.lua:947
+			"trypush",                   // movement.lua:1202
+			"dopush",                    // movement.lua:1277
+			"move",                      // movement.lua:1509
+			"add_moving_units",          // movement.lua:1724
+			"code",                      // rules.lua:1
+			"docode",                    // rules.lua:191
+			"codecheck",                 // rules.lua:858
+			"addoption",                 // rules.lua:949
+			"subrules",                  // rules.lua:1112
+			"postrules",                 // rules.lua:1344
+			"grouprules",                // rules.lua:1558
+			"copyrule",                  // rules.lua:2318
+			"comparerules",              // rules.lua:2371
+			"findwordunits",             // rules.lua:2383
+			"ruleblockeffect",           // rules.lua:2551
+			"getsentencevariant",        // rules.lua:2613
+			"addbaserule",               // rules.lua:2627
+			"calculatesentences",        // rules.lua:2651
+			"invertconds",               // rules.lua:2876
+			"rulelog",                   // rules.lua:2950
+			"updatelogrules",            // rules.lua:2966
+			"addunit",                   // syntax.lua:1
+			"cleanup",                   // syntax.lua:127
+			"command",                   // syntax.lua:131
+			"command_auto",              // syntax.lua:196
+			"dolog",                     // syntax.lua:250
+			"createall",                 // syntax.lua:259
+			"createall_single",          // syntax.lua:402
+			"setunitmap",                // syntax.lua:482
+			"setundo",                   // syntax.lua:535
+			"victory",                   // syntax.lua:548
+			"poscorrect",                // syntax.lua:552
+			"stringintable",             // syntax.lua:594
+			"levelborder",               // syntax.lua:606
+			"updatescreen",              // syntax.lua:654
+			"updateroomsize",            // syntax.lua:662
+			"checkerasesafety",          // syntax.lua:696
+			"fixedrandom",               // syntax.lua:757
+			"setfixedrandom",            // syntax.lua:773
+			"overrideundoseeding",       // syntax.lua:781
+			"setseedingtype",            // syntax.lua:786
+			"generatefreqs",             // syntax.lua:790
+			"setupnounlists",            // syntax.lua:878
+			"update_cleanup",            // syntax.lua:886
+			"rotate",                    // tools.lua:5
+			"isthis",                    // tools.lua:11
+			"xthis",                     // tools.lua:23
+			"findall",                   // tools.lua:37
+			"delunit",                   // tools.lua:79
+			"findtype",                  // tools.lua:236
+			"findobstacle",              // tools.lua:270
+			"update",                    // tools.lua:299
+			"updatedir",                 // tools.lua:351
+			"findtext",                  // tools.lua:377
+			"findallhere",               // tools.lua:394
+			"findempty",                 // tools.lua:430
+			"handleinside",              // tools.lua:477
+			"delete",                    // tools.lua:509
+			"writerules",                // tools.lua:574
+			"mapcells",                  // tools.lua:759
+			"copy",                      // tools.lua:771
+			"create",                    // tools.lua:784
+			"getunitid",                 // tools.lua:872
+			"newid",                     // tools.lua:885
+			"addunitmap",                // tools.lua:891
+			"updateunitmap",             // tools.lua:921
+			"inside",                    // tools.lua:948
+			"animate",                   // tools.lua:998
+			"updateanimations",          // tools.lua:1069
+			"issolid",                   // tools.lua:1104
+			"isgone",                    // tools.lua:1124
+			"floating",                  // tools.lua:1225
+			"floating_level",            // tools.lua:1265
+			"emptydir",                  // tools.lua:1310
+			"issafe",                    // tools.lua:1392
+			"issleep",                   // tools.lua:1413
+			"isstill",                   // tools.lua:1437
+			"isstill_or_locked",         // tools.lua:1458
+			"getmat",                    // tools.lua:1475
+			"getmat_text",               // tools.lua:1491
+			"destroylevel",              // tools.lua:1504
+			"destroylevel_do",           // tools.lua:1519
+			"findunitat",                // tools.lua:1585
+			"checkwordchanges",          // tools.lua:1603
+			"getpath",                   // tools.lua:1623
+			"append",                    // tools.lua:1633
+			"getname",                   // tools.lua:1647
+			"getemptytiles",             // tools.lua:1658
+			"setsoundname",              // tools.lua:1678
+			"checkturnsound",            // tools.lua:1709
+			"getlevelsurrounds",         // tools.lua:1717
+			"parsesurrounds",            // tools.lua:1753
+			"copytable",                 // tools.lua:1781
+			"copysubtable",              // tools.lua:1793
+			"copyconds",                 // tools.lua:1805
+			"concatenate",               // tools.lua:1822
+			"checkeffecthistory",        // tools.lua:1850
+			"updateeffecthistory",       // tools.lua:1874
+			"reseteffecthistory",        // tools.lua:1884
+			"genflowercolour",           // tools.lua:1888
+			"gettiledata",               // tools.lua:1902
+			"displaybigtext",            // tools.lua:1927
+			"gettablestring",            // tools.lua:1945
+			"pickoption",                // tools.lua:1959
+			"getpathdetails",            // tools.lua:1963
+			"getnamegivingtitle",        // tools.lua:1982
+			"findunits",                 // tools.lua:1997
+			"flipnot",                   // tools.lua:2020
+			"inbounds",                  // tools.lua:2032
+			"findfears",                 // tools.lua:2042
+			"getlettermultiplier",       // tools.lua:2185
+			"isitbroken",                // tools.lua:2205
+			"getinputcount",             // tools.lua:2213
+			"cantmove",                  // tools.lua:2219
+			"findnoun",                  // tools.lua:2254
+			"findgroup",                 // tools.lua:2266
+			"hasconds",                  // tools.lua:2390
+			"groupcheck",                // tools.lua:2409
+			"reversedir",                // tools.lua:2425
+			"reversecheck",              // tools.lua:2435
+			"simplecheck",               // tools.lua:2462
+			"newundo",                   // undo.lua:1
+			"addundo",                   // undo.lua:52
+			"undo",                      // undo.lua:100
+			"undostate",                 // undo.lua:466
+			"addaction",                 // update.lua:1
+			"doupdate",                  // update.lua:39
+			"findupdate",                // update.lua:100
+			"utf8_dec",                  // utf_decoder.lua:3
+			"decode",                    // utf_decoder.lua:44
+			"decode_mmf2",               // utf_decoder.lua:85
+			"testdecode",                // utf_decoder.lua:100
+			"visionmode",                // vision.lua:1
+			"changevisiontarget",        // vision.lua:96
+			"updatevisiontargets",       // vision.lua:165
+			"extrarender",               // vision.lua:220
+			"cullvision",                // vision.lua:379
+			"extrarender_do",            // vision.lua:415
+			"grid_3d",                   // vision.lua:605
+			"setupvision_wall",          // vision.lua:670
+			"visiontiling",              // vision.lua:696
+			"mod_hook_functions",
+		],
+		"Lua.diagnostics.disable": ["lowercase-global"],
+		"Lua.diagnostics.libraryFiles": "Disable",
+		"Lua.diagnostics.ignoredFiles": "Disable",
+	}
+}
