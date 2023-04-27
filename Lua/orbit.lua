@@ -23,16 +23,24 @@ function orbit_radius_take(moving_units, been_seen)
 	filter_moves(cached_moving_units, "orbit_radius", moving_units)
 	print("Submitting Radial Moves:")
 	vprint("moving_units", moving_units)
+	update_dirs(moving_units)
 end
 
 function orbit_tangent_take(moving_units, been_seen)
 	filter_moves(cached_moving_units, "orbit_tangent", moving_units)
 	print("Submitting Tangential Moves:")
 	vprint("moving_units", moving_units)
+	update_dirs(moving_units)
 end
 
 table.insert(mod_hook_functions["movement_take"], orbit_radius_take)
 table.insert(mod_hook_functions["movement_take"], orbit_tangent_take)
+
+function update_dirs(moving_units)
+	for i, move in ipairs(moving_units) do
+		updatedir(move.unitid, move.dir)
+	end
+end
 
 function insert_move(move, moving_units)
 	-- print("Inserting Move!")
@@ -186,7 +194,7 @@ end
 local function round(x)
     return math.floor(x+0.5)
 end
-local function step_x(steps, rx, nx)
+local function step_x(rx, nx)
 	if nx > rx then
 		return 0
 	elseif nx < rx then
@@ -195,7 +203,7 @@ local function step_x(steps, rx, nx)
 		return -1
 	end
 end
-local function step_y(steps, ry, ny)
+local function step_y(ry, ny)
 	if ny > ry then
 		return 3
 	elseif ny < ry then
@@ -244,47 +252,72 @@ local function calc_octant(x, y)
 
 	return result
 end
-function calc_orbit_step(rx,ry, reverse)
+function calc_orbit_step(x,y, reverse)
 	local tangent_step = -1
 	local radius_step = -1
-	local r = math.floor(hyp(rx, ry))
-	local octant = calc_octant(rx, ry)
+	local r = hyp(x, y)
+	local octant = calc_octant(x, y)
 
-	local nx, ny = rx, ry
+	candidates = {}
 
-	if reverse then
-		d = -1
-	else
-		d = 1
+	if octant == -1 then
+		candidates = {{0,0}}
+	elseif octant == 1 then
+		candidates = {{0,1},{-1,1}}
+	elseif octant == 2 then
+		candidates = {{-1,0},{-1,1}}
+	elseif octant == 3 then
+		candidates = {{-1,0},{-1,-1}}
+	elseif octant == 4 then
+		candidates = {{0,-1},{-1,-1}}
+	elseif octant == 5 then
+		candidates = {{0,-1},{1,-1}}
+	elseif octant == 6 then
+		candidates = {{1,0},{1,-1}}
+	elseif octant == 7 then
+		candidates = {{1,0},{1,1}}
+	elseif octant == 8 then
+		candidates = {{0,1},{1,1}}
 	end
 
-	if octant == 1 or octant == 8 then
-		ny = ry + d
-		nx = round(leg(ry, r))
-		tangent_step = step_y(steps, ry,ny)
-		radius_step = step_x(steps, rx,nx)
-	elseif octant == 2 or octant == 3 then
-		nx = rx - d
-		ny = round(leg(rx, r))
-		tangent_step = step_x(steps, rx,nx)
-		radius_step = step_y(steps, ry,ny)
-	elseif octant == 4 or octant == 5 then
-		ny = ry - d
-		nx = round(leg(ry, r))
-		tangent_step = step_y(steps, ry,ny)
-		radius_step = step_x(steps, rx,nx)
-	elseif octant == 6 or octant == 7 then
-		nx = rx + d
-		ny = round(leg(rx, r))
-		tangent_step = step_x(steps, rx,nx)
-		radius_step = step_y(steps, ry,ny)
-	else
-		vprint("Unknown Octant ", {rx,ry,r,octant})
+	local best_loss = 9999
+	local best_step = {0,0}
+	local bx, by, br = x, y, r
+
+	for i, candidate in ipairs(candidates) do
+		local dx = candidate[1]
+		local dy = candidate[2]
+
+		local nx = x+dx
+		local ny = y+dy
+		local nr = hyp(nx,ny)
+
+		local loss = 10 * math.abs(math.floor(nr)-math.floor(r)) + math.abs(nr-r)
+
+		if loss < best_loss then
+			best_loss = loss
+			best_step = candidate
+			bx, by, br = nx, ny, nr
+		end
 	end
 
-	local new_r = math.floor(hyp(nx, ny))
-	if (new_r ~= r) then
-		vprint("Orbital Drift Detected ", {rx,ry,r,octant,nx,ny,new_r})
+	if octant == 1 or octant == 8 or octant == 4 or octant == 5 then
+		tangent_step = step_y(y,by)
+		radius_step = step_x(x,bx)
+	else -- octant == 2 or octant == 3 then
+		tangent_step = step_x(x,bx)
+		radius_step = step_y(y,by)
+	end
+
+	if (math.floor(br) ~= math.floor(r)) then
+		print("Orbital Drift:")
+		vprint("rr",r)
+		vprint("rx",rx)
+		vprint("ry",ry)
+		vprint("nr",new_r)
+		vprint("nx",nx)
+		vprint("ny",ny)
+		radius_step = -1
 	end
 
 	return tangent_step, radius_step
