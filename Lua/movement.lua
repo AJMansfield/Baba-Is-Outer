@@ -440,43 +440,56 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 						end
 					end
 				end
-			end
 --- BEGIN PATCH ---
-        elseif (take == 9) then -- cloned from fear
-            local orbitlist = getunitswithverb("orbit")
+			elseif (take == 9) then -- cloned from fear
+				print("running orbit")
+				print("findfeature")
+				tprint(findfeature(nil,"orbit",nil,true), 1)
+				print("findallfeature")
+				tprint(findallfeature(nil,"orbit",nil,true), 1)
+				print("getunitswithverb")
+				tprint(getunitswithverb("orbit"), 1)
+				print("getunitverbtargets")
+				tprint(getunitverbtargets("orbit"), 1)
 
-			print("running orbit")
-            
-            for unitid, parentlist, orbitname in getunitswithverb("orbit") do
-				local sleeping = false
-				local unit = mmf.newObject(unitid)
-				local unitname = getname(unit)
-				local sleep = hasfeature(unitname,"is","sleep",uid)
-				local still = cantmove(unitname,uid,orbitdir)
-				local reverse = (reversecheck(unitid,0,x,y) ~= 0)
-				local ux,uy = unit.values[XPOS],unit.values[YPOS]
 				
-				if (sleep ~= nil) or still then
-					sleeping = true
-				else
-					for parentid in parentlist do
-						local parent = mmf.newObject(parentid)
-						local px,py = parent.values[XPOS],parent.values[YPOS]
+				for a, b in getunitverbtargets("orbit") do
+					
+				end
 
-						for dir in calc_orbit_step(ux-px, uy-py, reverse) do
-							if (sleeping == false) then
-								table.insert(moving_units, {unitid = unitid, reason = "orbit", state = 0, moves = 1, dir = dir, xpos = ux, ypos = uy})
-                                been_seen[unitid] = #moving_units
-                            else
-                                local id = been_seen[unitid]
-                                local this = moving_units[unitid]
-                                this.moves = this.moves + 1
-                            end
-                        end
-                    end
-                end
-            end
+				-- 	local uid = u[0]
+				-- 	local parentlist = u[1]
+				-- 	local orbitname = u[2]
+				-- 	local sleeping = false
+				-- 	local unit = mmf.newObject(uid)
+				-- 	local unitname = getname(unit)
+				-- 	local sleep = hasfeature(unitname,"is","sleep",uid)
+				-- 	local still = cantmove(unitname,uid,orbitdir)
+				-- 	local reverse = (reversecheck(uid,0,x,y) ~= 0)
+				-- 	local ux,uy = unit.values[XPOS],unit.values[YPOS]
+					
+				-- 	if (sleep ~= nil) or still then
+				-- 		sleeping = true
+				-- 	else
+				-- 		for j, pid in ipairs(parentlist) do
+				-- 			local parent = mmf.newObject(pid)
+				-- 			local px,py = parent.values[XPOS],parent.values[YPOS]
+
+				-- 			for dir in calc_orbit_step(ux-px, uy-py, reverse) do
+				-- 				if (sleeping == false) then
+				-- 					table.insert(moving_units, {uid = uid, reason = "orbit", state = 0, moves = 1, dir = dir, xpos = ux, ypos = uy})
+				-- 					been_seen[uid] = #moving_units
+				-- 				else
+				-- 					local id = been_seen[uid]
+				-- 					local this = moving_units[uid]
+				-- 					this.moves = this.moves + 1
+				-- 				end
+				-- 			end
+				-- 		end
+				-- 	end
+				-- end
 --- END PATCH ---
+			end
 		else
 			for i,data in ipairs(still_moving) do
 				if (data.unitid ~= 2) then
