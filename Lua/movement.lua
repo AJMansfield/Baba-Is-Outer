@@ -443,7 +443,7 @@ function movecommand(ox,oy,dir_,playerid_,dir_2,no3d_)
 					end
 				end
 --- BEGIN PATCH ---
-			elseif (take >= 9) then -- cloned from fear
+			elseif (take >= 9) then
 				mod_fun_num = take - 8
 				mod_hook_functions["movement_take"][mod_fun_num](moving_units, been_seen)
 --- END PATCH ---
