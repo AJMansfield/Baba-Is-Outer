@@ -78,6 +78,7 @@ customobjects.tileorder =
 	"text_traveler",
 	"anglerfish_monster",
 	"text_orbit",
+	"text_deorbit",
 }
 
 -- Defines custom objects.
@@ -155,6 +156,17 @@ customobjects.tiles =
 	},
 	{
 		name = "text_orbit",
+		unittype = "text",
+		tags = {"text_verb","movement"},
+		tiling = -1,
+		type = 1,
+		layer = 20,
+		colour = {5, 1},
+		colour_active = {5, 3},
+		sprite_in_root = false,
+	},
+	{
+		name = "text_deorbit",
 		unittype = "text",
 		tags = {"text_verb","movement"},
 		tiling = -1,
