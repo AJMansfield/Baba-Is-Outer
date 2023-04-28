@@ -1,14 +1,14 @@
 -- require("Lua.utils")
 
 
-cached_principle = {}
+cached_principal = {}
 cached_residual = {}
 
-function orbit_principle_take(moving_units, been_seen)
-	cached_principle, cached_residual = derive_orbit_takes()
+function orbit_principal_take(moving_units, been_seen)
+	cached_principal, cached_residual = derive_orbit_takes()
 
-	update_dirs(cached_principle)
-	for i, move in pairs(cached_principle) do
+	update_dirs(cached_principal)
+	for i, move in pairs(cached_principal) do
 		table.insert(moving_units, move)
 	end
 
@@ -27,11 +27,11 @@ function orbit_residual_take(moving_units, been_seen)
 end
 
 function orbit_orientation_take(moving_units, been_seen)
-	update_dirs(cached_principle)
+	update_dirs(cached_principal)
 	print("Performed Orientational Updates.")
 end
 
-table.insert(mod_hook_functions.movement_take, orbit_principle_take)
+table.insert(mod_hook_functions.movement_take, orbit_principal_take)
 table.insert(mod_hook_functions.movement_take, orbit_residual_take)
 table.insert(mod_hook_functions.movement_take, orbit_orientation_take)
 
@@ -44,7 +44,7 @@ function derive_orbit_takes()
 	---@type table<uid_t, {x:integer, y:integer}>
 	local new_pos_table = {}
 
-	local principle_list = {}
+	local principal_list = {}
 	local residual_list = {}
 
 	for i, lhs_uid in pairs(process_order) do
@@ -57,23 +57,23 @@ function derive_orbit_takes()
 		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then, isreverse(lhs_uid))
 		
 		if pr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, pr.dir) then
-			dir, ox, oy = reversecheck(lhs_uid, pr.dir, lhs.x, lhs.y)
-			insert_move({unitid = lhs_uid, reason = "orbit_principle", state = 0, moves = pr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y}, principle_list)
+			dir, ox, oy = reversecheck(lhs_uid, pr.dir, lhs.x, lhs.y) -- cancel out the default reverse behavior so we can implement it ourself
+			table.insert(principal_list, {unitid = lhs_uid, reason = "orbit_principal", state = 0, moves = pr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y})
 		end
 		if rr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, rr.dir) then
-			dir, ox, oy = reversecheck(lhs_uid, rr.dir, lhs.x, lhs.y)
-			insert_move({unitid = lhs_uid, reason = "orbit_residual", state = 0, moves = rr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y}, residual_list)
+			dir, ox, oy = reversecheck(lhs_uid, rr.dir, lhs.x, lhs.y) -- cancel out the default reverse behavior so we can implement it ourself
+			table.insert(residual_list, {unitid = lhs_uid, reason = "orbit_residual", state = 0, moves = rr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y})
 		end
 	end
 
-	return principle_list, residual_list
+	return principal_list, residual_list
 end
 
 ---comment
 ---@param lhs_now {x:number, y:number}
 ---@param lhs_then {x:number, y:number}
----@return {dir:dir_t, moves:integer} principle_polar
----@return {x:number, y:number} principle_vec
+---@return {dir:dir_t, moves:integer} principal_polar
+---@return {x:number, y:number} principal_vec
 ---@return {dir:dir_t, moves:integer} residual_polar
 ---@return {x:number, y:number} residual_vec
 function decompose_position_change_into_steps(lhs_now, lhs_then, is_reverse)
@@ -81,11 +81,11 @@ function decompose_position_change_into_steps(lhs_now, lhs_then, is_reverse)
 	vprint("lhs_then",lhs_then)
 	local s_vec = {x=lhs_then.x-lhs_now.x, y=lhs_then.y-lhs_now.y}
 	vprint("s_vec", s_vec)
-	local p_dir = vec_to_dir(s_vec, not is_reverse) -- principle step direction
+	local p_dir = vec_to_dir(s_vec, not is_reverse) -- principal step direction
 	vprint("p_dir", p_dir)
-	local p_vec = dir_to_vec(p_dir) -- principle step unit vector
+	local p_vec = dir_to_vec(p_dir) -- principal step unit vector
 	vprint("p_vec", p_vec)
-	local p_len = s_vec.x*p_vec.x + s_vec.y*p_vec.y -- step length needed for principle step
+	local p_len = s_vec.x*p_vec.x + s_vec.y*p_vec.y -- step length needed for principal step
 	vprint("p_len", p_len)
 	local r_vec = {x=s_vec.x - p_len*p_vec.x, y=s_vec.y - p_len*p_vec.y} -- residual vector
 	vprint("r_vec", r_vec)
