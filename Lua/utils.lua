@@ -273,6 +273,13 @@ function isdead(unitid)
 	end
 end
 
+---test if a unit is reversed
+---@param unitid uid_t
+---@return boolean
+function isreverse(unitid)
+	return reversecheck(unitid, 0) == 0
+end
+
 ---@alias graph_t table<uid_t, table<uid_t, integer>>
 
 ---traverse a graph in depth-first order

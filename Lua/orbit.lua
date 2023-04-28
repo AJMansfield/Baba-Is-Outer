@@ -54,13 +54,15 @@ function derive_orbit_takes()
 		local lhs = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
 		lhs_then = compute_new_pos(lhs_uid, verb_graph[lhs_uid], verb_graph, new_pos_table)
 		new_pos_table[lhs_uid] = lhs_then
-		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then)
+		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then, isreverse(lhs_uid))
 		
 		if pr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, pr.dir) then
-			insert_move({unitid = lhs_uid, reason = "orbit_principle", state = 0, moves = pr.moves, dir = pr.dir, xpos = lhs.x, ypos = lhs.y}, principle_list)
+			dir, ox, oy = reversecheck(lhs_uid, pr.dir, lhs.x, lhs.y)
+			insert_move({unitid = lhs_uid, reason = "orbit_principle", state = 0, moves = pr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y}, principle_list)
 		end
 		if rr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, rr.dir) then
-			insert_move({unitid = lhs_uid, reason = "orbit_residual", state = 0, moves = rr.moves, dir = rr.dir, xpos = lhs.x, ypos = lhs.y}, residual_list)
+			dir, ox, oy = reversecheck(lhs_uid, rr.dir, lhs.x, lhs.y)
+			insert_move({unitid = lhs_uid, reason = "orbit_residual", state = 0, moves = rr.moves, dir = dir, xpos = lhs.x, ypos = lhs.y}, residual_list)
 		end
 	end
 
@@ -74,12 +76,12 @@ end
 ---@return {x:number, y:number} principle_vec
 ---@return {dir:dir_t, moves:integer} residual_polar
 ---@return {x:number, y:number} residual_vec
-function decompose_position_change_into_steps(lhs_now, lhs_then)
+function decompose_position_change_into_steps(lhs_now, lhs_then, is_reverse)
 	vprint("lhs_now",lhs_now)
 	vprint("lhs_then",lhs_then)
 	local s_vec = {x=lhs_then.x-lhs_now.x, y=lhs_then.y-lhs_now.y}
 	vprint("s_vec", s_vec)
-	local p_dir = vec_to_dir(s_vec) -- principle step direction
+	local p_dir = vec_to_dir(s_vec, not is_reverse) -- principle step direction
 	vprint("p_dir", p_dir)
 	local p_vec = dir_to_vec(p_dir) -- principle step unit vector
 	vprint("p_vec", p_vec)
@@ -87,7 +89,7 @@ function decompose_position_change_into_steps(lhs_now, lhs_then)
 	vprint("p_len", p_len)
 	local r_vec = {x=s_vec.x - p_len*p_vec.x, y=s_vec.y - p_len*p_vec.y} -- residual vector
 	vprint("r_vec", r_vec)
-	local r_dir = vec_to_dir(r_vec)
+	local r_dir = vec_to_dir(r_vec, not is_reverse)
 	vprint("r_dir", r_dir)
 	local r_len = math.abs(r_vec.x) + math.abs(r_vec.y)
 	vprint("r_len", r_len)
@@ -112,10 +114,11 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 	-- vprint("rhs_now", rhs_now)
 	-- vprint("rhs_then", rhs_then)
 
+	local is_reverse = isreverse(lhs_uid)
 	local lhs_unit = mmf.newObject(lhs_uid)
 	local lhs_now = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
 	lhs_now.invariant = compute_invariant(lhs_now, rhs_now)
-	lhs_now.progress, lhs_now.pmodulus = compute_progress(lhs_now, rhs_now)
+	lhs_now.progress, lhs_now.pmodulus = compute_progress(lhs_now, rhs_now, is_reverse)
 	
 	vprint("lhs_now", lhs_now)
 
@@ -125,7 +128,7 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 		for y = 1, roomsizey do
 			local lhs_then = {x=x,y=y}
 			lhs_then.invariant = compute_invariant(lhs_then, rhs_then)
-			lhs_then.progress, lhs_then.pmodulus = compute_progress(lhs_then, rhs_then)
+			lhs_then.progress, lhs_then.pmodulus = compute_progress(lhs_then, rhs_then, is_reverse)
 			if normalize_invariant(lhs_then.invariant) == normalize_invariant(lhs_now.invariant) then
 				table.insert(candidate_lhs_list, lhs_then)
 			end
@@ -148,6 +151,7 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 	-- vprint("candidate_lhs_list", candidate_lhs_list)
 
 	table.sort(candidate_lhs_list, progress_cmp)
+
 
 	local steps = 1
 	for rhs_uid, rhs_weight in pairs(verb_graph[lhs_uid]) do
@@ -256,16 +260,21 @@ end
 ---also returns the progress modulus; values shoud be compared with regard to that modulus
 ---@param lhs {x:number, y:number}
 ---@param rhs_list {x:number, y:number, w:number}[]
+---@param is_reverse boolean
 ---@return number, number
-function compute_progress(lhs, rhs_list)
+function compute_progress(lhs, rhs_list, is_reverse)
 	local result = 0
 	local modulus = 0
 	for i, rhs in pairs(rhs_list) do
 		local dx = lhs.x - rhs.x
 		local dy = lhs.y - rhs.y
-		local ang = math.atan(dy, dx)
-		result = result + ang
-		modulus = modulus + 2*math.pi
+		local ang = math.atan(dy, dx) + math.pi
+		if not is_reverse then
+			result = result + rhs.w * ang
+		else
+			result = result - rhs.w * ang
+		end
+		modulus = modulus + rhs.w * 2*math.pi
 	end
 	return result, modulus
 end
