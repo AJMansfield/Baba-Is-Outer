@@ -37,7 +37,10 @@ table.insert(mod_hook_functions.movement_take, orbit_orientation_take)
 
 
 function derive_orbit_takes()
-	local verb_graph = build_verb_graph("orbit")
+	local orbit_verb_graph = build_verb_graph("orbit")
+	local deorbit_verb_graph = build_verb_graph("orbit")
+	local verb_graph = subtract_verb_graphs(orbit_verb_graph, deorbit_verb_graph)
+
 	vprint("verb_graph", verb_graph)
 	local process_order = graph_topological_sort(verb_graph)
 	vprint("process_order", process_order)
@@ -312,6 +315,45 @@ function build_verb_graph(verb)
 	for lhs_uid, rhs_tab in pairs(result) do
 		for rhs_uid, weight in pairs(rhs_tab) do
 			result[lhs_uid][rhs_uid] = math.sqrt(weight)
+		end
+	end
+	return result
+end
+
+function subtract_verb_graphs(a, b)
+	result = {}
+	for u, vlist in pairs(a) do
+		if result[u] == nil then
+			result[u] = {}
+		end
+		for v, w in pairs(vlist) do
+			if result[u][v] == nil then
+				result[u][v] = 0
+			end
+			result[u][v] = result[u][v] + w
+			if result[u][v] == 0 then
+				result[u][v] = nil
+			end
+		end
+		if result[u] == {} then
+			result[u] = nil
+		end
+	end
+	for u, vlist in pairs(a) do
+		if result[u] == nil then
+			result[u] = {}
+		end
+		for v, w in pairs(vlist) do
+			if result[u][v] == nil then
+				result[u][v] = 0
+			end
+			result[u][v] = result[u][v] - w
+			if result[u][v] == 0 then
+				result[u][v] = nil
+			end
+		end
+		if result[u] == {} then
+			result[u] = nil
 		end
 	end
 	return result
