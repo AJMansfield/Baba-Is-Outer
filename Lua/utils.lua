@@ -2,7 +2,7 @@
 ---@alias uid_t number Lua stores it in a number type, but it's really an MMF object ID.
 
 ---@enum dir_t
-DIR = {
+DIRECTION_VALUES = {
 	undefined = -1,
 	W = -1,
 
@@ -27,18 +27,18 @@ DIR = {
 }
 
 UNIT_VEC = {
-	[DIR.W] = {x=0,y=0},
-	[DIR.Xp] = {x=1,y=0},
-	[DIR.Xn] = {x=-1,y=0},
-	[DIR.Yp] = {x=0,y=1},
-	[DIR.Yn] = {x=0,y=-1},
+	[DIRECTION_VALUES.W] = {x=0,y=0},
+	[DIRECTION_VALUES.Xp] = {x=1,y=0},
+	[DIRECTION_VALUES.Xn] = {x=-1,y=0},
+	[DIRECTION_VALUES.Yp] = {x=0,y=1},
+	[DIRECTION_VALUES.Yn] = {x=0,y=-1},
 }
 
 ---Convert direction value to a unit vector.
 ---@param dir dir_t
 ---@return {x:number, y:number}
 function dir_to_vec(dir)
-	if dir == DIR.random then
+	if dir == DIRECTION_VALUES.random then
 		dir = fixedrandom(0,3)
 	end
 	return UNIT_VEC[dir]
@@ -53,7 +53,7 @@ end
 function vec_to_dir(vec, prefer_clockwise)
 	local x, y = vec.x, vec.y
 	if x == 0 and y == 0 then
-		return DIR.undefined
+		return DIRECTION_VALUES.undefined
 	end
 
 	if prefer_clockwise == nil then
@@ -76,15 +76,15 @@ function vec_to_dir(vec, prefer_clockwise)
 
 	if (ax <= ay) then
 		if (y >= 0) then
-			return DIR.Yp
+			return DIRECTION_VALUES.Yp
 		else
-			return DIR.Yn
+			return DIRECTION_VALUES.Yn
 		end
 	else
 		if (x > 0) then
-			return DIR.Xp
+			return DIRECTION_VALUES.Xp
 		else
-			return DIR.Xn
+			return DIRECTION_VALUES.Xn
 		end
 	end
 end
@@ -97,7 +97,7 @@ end
 ---update the pointing direction of each sprite according to the move directions specified in the parameter
 ---@param moving_units moving_units_entry[]
 function update_dirs(moving_units)
-	for i, move in ipairs(moving_units) do
+	for i, move in pairs(moving_units) do
 		updatedir(move.unitid, move.dir)
 	end
 end
@@ -116,7 +116,7 @@ function insert_move(move, moving_units)
 
 	local done = false
 
-	for i, this in ipairs(moving_units) do
+	for i, this in pairs(moving_units) do
 		if this.unitid == move.unitid and this.xpos == move.xpos and this.ypos == move.ypos and this.reason == move.reason then
 			-- print("found match")
 			if this.dir == move.dir then
@@ -155,7 +155,7 @@ function filter_moves_by_reason(input_moving_units, reason, output_moving_units)
 	if output_moving_units == nil then
 		output_moving_units = {}
 	end
-	for i, move in ipairs(input_moving_units) do
+	for i, move in pairs(input_moving_units) do
 		if move.reason == reason and move.dir >= 0 and move.moves > 0 then
 			table.insert(output_moving_units, move)
 		end
@@ -170,8 +170,8 @@ end
 ---@return uid_t[]
 function feature_list_to_uid_list(feature_list, ignorebroken_)
 	local result = {}
-	for i, feature in ipairs(feature_list) do
-		for j, uid in ipairs(findall(feature, ignorebroken_)) do
+	for i, feature in pairs(feature_list) do
+		for j, uid in pairs(findall(feature, ignorebroken_)) do
 			table.insert(result, uid)
 		end
 	end
@@ -183,8 +183,8 @@ end
 ---@return uid_t[]
 function name_list_to_uid_list(name_list)
 	local result = {}
-	for i, name in ipairs(name_list) do
-		for j, uid in ipairs(findall({name})) do
+	for i, name in pairs(name_list) do
+		for j, uid in pairs(findall({name})) do
 			table.insert(result, uid)
 		end
 	end
@@ -206,12 +206,12 @@ function unique(tab, key_func_)
 	end
 
 	local set_tab = {}
-	for i, v in ipairs(tab) do
+	for i, v in pairs(tab) do
 		set_tab[key_func_(v)] = v
 	end
 
 	local result = {}
-	for k, v in ipairs(set_tab) do
+	for k, v in pairs(set_tab) do
 		table.insert(result, v)
 	end
 
@@ -281,7 +281,7 @@ end
 function graph_traverse_dfs(graph)
 	local result = {}
 	local visited = {}
-	for node, children in ipairs(graph) do
+	for node, children in pairs(graph) do
 		graph_traverse_dfs_from_node(graph, node, visited, result)
 	end
 	return result
@@ -298,7 +298,7 @@ function graph_traverse_dfs_from_node(graph, node, visited, result)
 		visited[node] = true
 		children = graph[node]
 		if children ~= nil then
-			for child, weight in ipairs(children) do
+			for child, weight in pairs(children) do
 				graph_traverse_dfs_from_node(graph, child, visited, result)
 			end
 		end
@@ -313,7 +313,7 @@ function graph_topological_sort(graph)
 	local state = {}
 	local result = {}
 	
-	for node, children in ipairs(graph) do
+	for node, children in pairs(graph) do
 		if state[node] == WHITE then
 			graph_topological_sort_from_node(graph, node, state, result)
 		end
@@ -330,12 +330,11 @@ function graph_topological_sort_from_node(graph, node, state, result)
 	local WHITE, GREY, BLACK = nil, 0, 1
 	if graph[node] ~= nil then
 		state[node] = GREY
-		for child, weight in ipairs(graph[node]) do
+		for child, weight in pairs(graph[node]) do
 			if state[child] == WHITE then
 				graph_topological_sort_from_node(graph, child, state, result)
 			elseif state[child] == GREY then
 				-- we have a cycle!
-				print("graph cycle detected")
 			end
 		end
 		state[node] = BLACK
