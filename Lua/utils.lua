@@ -348,3 +348,131 @@ function graph_topological_sort_from_node(graph, node, state, result)
 		table.insert(result, node)
 	end
 end
+
+---
+--- @param verb string
+--- @return table<uid_t, table<uid_t, integer>>
+function build_verb_graph(verb)
+	result = {}
+
+	local lhs_features = findfeature(nil,verb,nil)
+	if lhs_features == nil then
+		return {}
+	end
+	local lhs_uids = feature_list_to_uid_list(lhs_features)
+	
+	for i, lhs_uid in pairs(lhs_uids) do
+		if not (isdead(lhs_uid) or issleep(lhs_uid) or isstill(lhs_uid)) then
+			local lhs_name = get_uid_name(lhs_uid)
+			local rules = collect_applicable_rules(lhs_uid, verb)
+			local rhs_names = xthis(rules, lhs_name, verb)
+
+			local rhs_uids = name_list_to_uid_list(rhs_names)
+
+			for j, rhs_uid in pairs(rhs_uids) do
+				if result[lhs_uid] == nil then
+					result[lhs_uid] = {}
+				end
+				if result[lhs_uid][rhs_uid] == nil then
+					result[lhs_uid][rhs_uid] = 0
+				end
+				result[lhs_uid][rhs_uid] = result[lhs_uid][rhs_uid] + 1
+			end
+			
+		end
+	end
+
+	for lhs_uid, rhs_tab in pairs(result) do
+		for rhs_uid, weight in pairs(rhs_tab) do
+			result[lhs_uid][rhs_uid] = math.sqrt(weight)
+		end
+	end
+	return result
+end
+
+function subtract_verb_graphs(a, b)
+	result = {}
+	for u, vlist in pairs(a) do
+		if result[u] == nil then
+			result[u] = {}
+		end
+		for v, w in pairs(vlist) do
+			if result[u][v] == nil then
+				result[u][v] = 0
+			end
+			result[u][v] = result[u][v] + w
+			if result[u][v] == 0 then
+				result[u][v] = nil
+			end
+		end
+		if result[u] == {} then
+			result[u] = nil
+		end
+	end
+	for u, vlist in pairs(b) do
+		if result[u] == nil then
+			result[u] = {}
+		end
+		for v, w in pairs(vlist) do
+			if result[u][v] == nil then
+				result[u][v] = 0
+			end
+			result[u][v] = result[u][v] - w
+			if result[u][v] == 0 then
+				result[u][v] = nil
+			end
+		end
+		if result[u] == {} then
+			result[u] = nil
+		end
+	end
+	return result
+end
+
+function get_uid_name(uid)
+	local unit = mmf.newObject(uid)
+	local name = unit.strings[UNITNAME]
+	if (unit.strings[UNITTYPE] == "text") then
+		name = "text"
+	end
+	return name
+end
+
+---Collect rules that apply to 
+---@param uid uid_t
+---@return table
+function collect_applicable_rules(uid, verb)
+	local unit = mmf.newObject(uid)
+	local name = get_uid_name(uid)
+	local applicable_rules = {}
+
+	if (featureindex[name] ~= nil) then					
+		for i,rule_info in pairs(featureindex[name]) do
+			local rule_main = rule_info[1]
+			local rule_pred = rule_info[2]
+			local rule_verb = rule_main[2]
+			
+			if (rule_verb == verb) and testcond(rule_pred, uid) then
+				table.insert(applicable_rules, rule_info)
+			end
+		end
+		
+	end
+	return applicable_rules
+end
+
+
+--- Returns false if value is falsey (`nil` or `false`), returns true if value is truthy (everything else)
+---@param v any
+---@return boolean
+function toboolean(v)
+    return v ~= nil and v ~= false
+end
+
+--- Returns true if one value is falsey and the other is truthy, returns false otherwise
+---@param a any
+---@param b any
+---@return boolean
+function xor(a, b)
+    return toboolean(a) ~= toboolean(b)
+end

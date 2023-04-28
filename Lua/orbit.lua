@@ -12,8 +12,8 @@ function orbit_principal_take(moving_units, been_seen)
 		table.insert(moving_units, move)
 	end
 
-	print("Submitting Principal Moves:")
-	tprint(moving_units)
+	-- print("Submitting Principal Moves.")
+	-- tprint(moving_units)
 end
 
 function orbit_residual_take(moving_units, been_seen)
@@ -22,13 +22,13 @@ function orbit_residual_take(moving_units, been_seen)
 		table.insert(moving_units, move)
 	end
 
-	print("Submitting Residual Moves:")
-	tprint(moving_units)
+	-- print("Submitting Residual Moves.")
+	-- tprint(moving_units)
 end
 
 function orbit_orientation_take(moving_units, been_seen)
 	update_dirs(cached_principal)
-	print("Performed Orientational Updates.")
+	-- print("Performed Orientational Updates.")
 end
 
 table.insert(mod_hook_functions.movement_take, orbit_principal_take)
@@ -38,9 +38,10 @@ table.insert(mod_hook_functions.movement_take, orbit_orientation_take)
 
 function derive_orbit_takes()
 	local orbit_verb_graph = build_verb_graph("orbit")
-	local deorbit_verb_graph = build_verb_graph("orbit")
+	vprint("orbit_verb_graph", orbit_verb_graph)
+	local deorbit_verb_graph = build_verb_graph("deorbit")
+	vprint("deorbit_verb_graph", deorbit_verb_graph)
 	local verb_graph = subtract_verb_graphs(orbit_verb_graph, deorbit_verb_graph)
-
 	vprint("verb_graph", verb_graph)
 	local process_order = graph_topological_sort(verb_graph)
 	vprint("process_order", process_order)
@@ -57,7 +58,7 @@ function derive_orbit_takes()
 		local lhs = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
 		lhs_then = compute_new_pos(lhs_uid, verb_graph[lhs_uid], verb_graph, new_pos_table)
 		new_pos_table[lhs_uid] = lhs_then
-		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then, isreverse(lhs_uid))
+		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then, xor(isreverse(lhs_uid), is_majority_clockwise(verb_graph[lhs_uid])))
 		
 		if pr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, pr.dir) then
 			dir, ox, oy = reversecheck(lhs_uid, pr.dir, lhs.x, lhs.y) -- cancel out the default reverse behavior so we can implement it ourself
@@ -80,22 +81,22 @@ end
 ---@return {dir:dir_t, moves:integer} residual_polar
 ---@return {x:number, y:number} residual_vec
 function decompose_position_change_into_steps(lhs_now, lhs_then, is_reverse)
-	vprint("lhs_now",lhs_now)
-	vprint("lhs_then",lhs_then)
+	-- vprint("lhs_now",lhs_now)
+	-- vprint("lhs_then",lhs_then)
 	local s_vec = {x=lhs_then.x-lhs_now.x, y=lhs_then.y-lhs_now.y}
-	vprint("s_vec", s_vec)
+	-- vprint("s_vec", s_vec)
 	local p_dir = vec_to_dir(s_vec, not is_reverse) -- principal step direction
-	vprint("p_dir", p_dir)
+	-- vprint("p_dir", p_dir)
 	local p_vec = dir_to_vec(p_dir) -- principal step unit vector
-	vprint("p_vec", p_vec)
+	-- vprint("p_vec", p_vec)
 	local p_len = s_vec.x*p_vec.x + s_vec.y*p_vec.y -- step length needed for principal step
-	vprint("p_len", p_len)
+	-- vprint("p_len", p_len)
 	local r_vec = {x=s_vec.x - p_len*p_vec.x, y=s_vec.y - p_len*p_vec.y} -- residual vector
-	vprint("r_vec", r_vec)
+	-- vprint("r_vec", r_vec)
 	local r_dir = vec_to_dir(r_vec, not is_reverse)
-	vprint("r_dir", r_dir)
+	-- vprint("r_dir", r_dir)
 	local r_len = math.abs(r_vec.x) + math.abs(r_vec.y)
-	vprint("r_len", r_len)
+	-- vprint("r_len", r_len)
 	return {dir=p_dir, moves=p_len}, p_vec, {dir=r_dir, moves=r_len}, r_vec
 end
 
@@ -106,16 +107,16 @@ end
 ---@param new_pos_table {x:number, y:number, w:number}[]
 ---@return { x: integer, y: integer }
 function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
-	-- print("computing new position")
-	-- vprint("lhs_uid", lhs_uid)
-	-- vprint("rhs_uids", rhs_uids)
+	print("computing new position")
+	vprint("lhs_uid", lhs_uid)
+	vprint("rhs_uids", rhs_uids)
 	-- vprint("verb_graph", verb_graph)
 	-- vprint("new_pos_table", new_pos_table)
 
 	local rhs_now, rhs_then = compute_rhs_positions(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 
-	-- vprint("rhs_now", rhs_now)
-	-- vprint("rhs_then", rhs_then)
+	vprint("rhs_now", rhs_now)
+	vprint("rhs_then", rhs_then)
 
 	local is_reverse = isreverse(lhs_uid)
 	local lhs_unit = mmf.newObject(lhs_uid)
@@ -138,12 +139,18 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 		end
 	end
 
+	if #candidate_lhs_list <= 1 then 
+		return lhs_now -- safety valve just in case
+	end
+
 	local function progress_key(lhs_then)
 		local progress = lhs_then.progress - lhs_now.progress
-		while progress < 0 do
-			progress = progress + lhs_then.pmodulus
+		if lhs_then.pmodulus > 0 then
+			while progress < 0 do
+				progress = progress + lhs_then.pmodulus
+			end
+			progress = math.fmod(progress, lhs_then.pmodulus)
 		end
-		progress = math.fmod(progress, lhs_then.pmodulus)
 		return progress
 	end
 
@@ -151,7 +158,7 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 		return progress_key(a) < progress_key(b)
 	end
 
-	-- vprint("candidate_lhs_list", candidate_lhs_list)
+	vprint("candidate_lhs_list", candidate_lhs_list)
 
 	table.sort(candidate_lhs_list, progress_cmp)
 
@@ -169,9 +176,9 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 
 	local selected_lhs = candidate_lhs_list[steps]
 
-	vprint("candidate_lhs_list", candidate_lhs_list)
-	vprint("steps", steps)
-	vprint("selected_lhs", selected_lhs)
+	-- vprint("candidate_lhs_list", candidate_lhs_list)
+	-- vprint("steps", steps)
+	-- vprint("selected_lhs", selected_lhs)
 
 	return selected_lhs
 end
@@ -205,9 +212,13 @@ function compute_rhs_positions(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 					-- print("they co-orbit!")
 					use_barycenter = true
 					lw = maybe_lhs_weight -- math.sqrt()
+					if lw + rw == 0 then -- they're orbiting each other in the wrong order
+						use_barycenter = false
+					else
+						break
+					end
 					-- vprint("lw", lw)
 					-- vprint("rw", rw)
-					break
 				end
 			end
 		end
@@ -243,16 +254,26 @@ end
 ---@param rhs_list {x:number, y:number, w:number}[]
 ---@return number
 function compute_invariant(lhs, rhs_list)
-	local result = 0
+	-- print("computing invariant")
+	-- vprint("lhs", lhs)
+	-- vprint("rhs_list", rhs_list)
+	local numer = 0
 	local denom = 0
 	for i, rhs in pairs(rhs_list) do
 		local dx = lhs.x - rhs.x
 		local dy = lhs.y - rhs.y
 		local len = math.sqrt(dx*dx + dy*dy)
-		result = result + len * rhs.w
+		numer = numer + len * rhs.w
 		denom = denom + rhs.w
 	end
-	return (result / denom)
+	if denom ~= 0 then
+		return numer / denom
+	else
+		return numer
+	end
+	
+	-- vprint("invariant", (result / denom) )
+	-- return (numer / denom)
 end
 
 function normalize_invariant(invariant)
@@ -277,116 +298,19 @@ function compute_progress(lhs, rhs_list, is_reverse)
 		else
 			result = result - rhs.w * ang
 		end
-		modulus = modulus + rhs.w * 2*math.pi
+		modulus = modulus + math.abs(rhs.w) * 2*math.pi
 	end
 	return result, modulus
 end
 
----
---- @param verb string
---- @return table<uid_t, table<uid_t, integer>>
-function build_verb_graph(verb)
-	result = {}
 
-	local lhs_features = findfeature(nil,verb,nil)
-	local lhs_uids = feature_list_to_uid_list(lhs_features)
-	
-	for i, lhs_uid in pairs(lhs_uids) do
-		if not (isdead(lhs_uid) or issleep(lhs_uid) or isstill(lhs_uid)) then
-			local lhs_name = get_uid_name(lhs_uid)
-			local rules = collect_applicable_rules(lhs_uid, verb)
-			local rhs_names = xthis(rules, lhs_name, "orbit")
-
-			local rhs_uids = name_list_to_uid_list(rhs_names)
-
-			for j, rhs_uid in pairs(rhs_uids) do
-				if result[lhs_uid] == nil then
-					result[lhs_uid] = {}
-				end
-				if result[lhs_uid][rhs_uid] == nil then
-					result[lhs_uid][rhs_uid] = 0
-				end
-				result[lhs_uid][rhs_uid] = result[lhs_uid][rhs_uid] + 1
-			end
-			
-		end
+---Determine if this adjacency is majority clockwise (for diagonal precedence purposes)
+---@param neighbors table<uid_t, integer> neighbor table
+---@return boolean
+function is_majority_clockwise(neighbors)
+	local sum = 0
+	for n_uid, n_weight in pairs(neighbors) do
+		sum = sum + n_weight
 	end
-
-	for lhs_uid, rhs_tab in pairs(result) do
-		for rhs_uid, weight in pairs(rhs_tab) do
-			result[lhs_uid][rhs_uid] = math.sqrt(weight)
-		end
-	end
-	return result
-end
-
-function subtract_verb_graphs(a, b)
-	result = {}
-	for u, vlist in pairs(a) do
-		if result[u] == nil then
-			result[u] = {}
-		end
-		for v, w in pairs(vlist) do
-			if result[u][v] == nil then
-				result[u][v] = 0
-			end
-			result[u][v] = result[u][v] + w
-			if result[u][v] == 0 then
-				result[u][v] = nil
-			end
-		end
-		if result[u] == {} then
-			result[u] = nil
-		end
-	end
-	for u, vlist in pairs(a) do
-		if result[u] == nil then
-			result[u] = {}
-		end
-		for v, w in pairs(vlist) do
-			if result[u][v] == nil then
-				result[u][v] = 0
-			end
-			result[u][v] = result[u][v] - w
-			if result[u][v] == 0 then
-				result[u][v] = nil
-			end
-		end
-		if result[u] == {} then
-			result[u] = nil
-		end
-	end
-	return result
-end
-
-function get_uid_name(uid)
-	local unit = mmf.newObject(uid)
-	local name = unit.strings[UNITNAME]
-	if (unit.strings[UNITTYPE] == "text") then
-		name = "text"
-	end
-	return name
-end
-
----Collect rules that apply to 
----@param uid uid_t
----@return table
-function collect_applicable_rules(uid, verb)
-	local unit = mmf.newObject(uid)
-	local name = get_uid_name(uid)
-	local applicable_rules = {}
-
-	if (featureindex[name] ~= nil) then					
-		for i,rule_info in pairs(featureindex[name]) do
-			local rule_main = rule_info[1]
-			local rule_pred = rule_info[2]
-			local rule_verb = rule_main[2]
-			
-			if (rule_verb == verb) and testcond(rule_pred, uid) then
-				table.insert(applicable_rules, rule_info)
-			end
-		end
-		
-	end
-	return applicable_rules
+	return sum > 0
 end
