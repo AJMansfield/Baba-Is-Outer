@@ -1,376 +1,286 @@
+require("Lua.utils")
 
 
-cached_moving_units = {}
-function orbit_take(moving_units, been_seen)
-	local lhs_names = findfeature(nil,"orbit",nil,true)
-	if (lhs_names == nil) then
-		return
-	end
+cached_principle = {}
+cached_residual = {}
 
-	-- vprint("orbit_rules", lhs_names)
+function orbit_principle_take(moving_units, been_seen)
+	cached_principle, cached_residual = derive_orbit_takes()
 
-	for i, lhs_name in ipairs(lhs_names) do
-		orbit_each_lhs_name_around(lhs_name, moving_units)
-	end
-
-	-- vprint("moving_units", moving_units)
-end
-
-function orbit_radius_take(moving_units, been_seen)
-	cached_moving_units = {}
-	orbit_take(cached_moving_units, been_seen)
-
-	filter_moves(cached_moving_units, "orbit_radius", moving_units)
-	print("Submitting Radial Moves:")
-	vprint("moving_units", moving_units)
-	update_dirs(moving_units)
-end
-
-function orbit_tangent_take(moving_units, been_seen)
-	filter_moves(cached_moving_units, "orbit_tangent", moving_units)
-	print("Submitting Tangential Moves:")
-	vprint("moving_units", moving_units)
-	update_dirs(moving_units)
-end
-
-table.insert(mod_hook_functions["movement_take"], orbit_radius_take)
-table.insert(mod_hook_functions["movement_take"], orbit_tangent_take)
-
-function update_dirs(moving_units)
-	for i, move in ipairs(moving_units) do
-		updatedir(move.unitid, move.dir)
-	end
-end
-
-function insert_move(move, moving_units)
-	-- print("Inserting Move!")
-	-- vprint("move", move)
-
-	if move == nil or move.dir < 0 then
-		-- print("skipping insert move")
-		return
-	end
-
-	local done = false
-
-	for i, this in ipairs(moving_units) do
-		if this.unitid == move.unitid and this.xpos == move.xpos and this.ypos == move.ypos and this.reason == move.reason then
-			-- print("found match")
-			if this.dir == move.dir then
-				-- print("adding to existing move")
-				this.moves = this.moves + move.moves
-				done = true
-				break
-			elseif this.dir == reversedir(move.dir) then
-				-- print("subtracting from existing move")
-				this.moves = this.moves - move.moves
-				if this.moves < 0 then
-					-- print("flipping existing move")
-					this.moves = - this.moves
-					this.dir = reversedir(this.dir)
-				end
-				done = true
-				break
-			else
-				-- print("orthogonal")
-			end
-		end
-	end
-
-	if done == false then
-		-- print("inserting new move")
+	update_dirs(cached_principle)
+	for i, move in ipairs(cached_principle) do
 		table.insert(moving_units, move)
 	end
+
+	print("Submitting Principal Moves:")
+	tprint(moving_units)
 end
 
-function filter_moves(moving_units, reason, outtable)
-	if outtable == nil then
-		outtable = {}
+function orbit_residual_take(moving_units, been_seen)
+	update_dirs(cached_residual)
+	for i, move in ipairs(cached_residual) do
+		table.insert(moving_units, move)
 	end
-	for i, move in ipairs(moving_units) do
-		if move.reason == reason and move.dir >= 0 and move.moves > 0 then
-			table.insert(outtable, move)
+
+	print("Submitting Residual Moves:")
+	tprint(moving_units)
+end
+
+function orbit_orientation_take(moving_units, been_seen)
+	update_dirs(cached_principle)
+	print("Performed Orientational Updates.")
+end
+
+table.insert(mod_hook_functions.movement_take, orbit_principle_take)
+table.insert(mod_hook_functions.movement_take, orbit_residual_take)
+table.insert(mod_hook_functions.movement_take, orbit_orientation_take)
+
+
+function derive_orbit_takes()
+	local verb_graph = build_verb_graph("orbit")
+	local process_order = graph_topological_sort(verb_graph)
+	---@type table<uid_t, {x:integer, y:integer}>
+	local new_pos_table = {}
+
+	local principle_list = {}
+	local residual_list = {}
+
+	for i, lhs_uid in ipairs(process_order) do
+		local lhs_unit = mmf.newObject(lhs_uid)
+		local lhs = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
+		lhs_then = compute_new_pos(lhs_uid, verb_graph[lhs_uid], verb_graph, new_pos_table)
+		new_pos_table[lhs_uid] = lhs_then
+		local pr, pv, rr, rv = decompose_position_change_into_steps(lhs, lhs_then)
+
+		if pr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, pr.dir) then
+			insert_move({unitid = lhs_uid, reason = "orbit_principle", state = 0, moves = pr.moves, dir = pr.dir, xpos = lhs.x, ypos = lhs.y}, principle_list)
+		end
+		if rr.dir >=0 and not isstill_or_locked(lhs_uid, lhs.x, lhs.y, rr.dir) then
+			insert_move({unitid = lhs_uid, reason = "orbit_residual", state = 0, moves = rr.moves, dir = rr.dir, xpos = lhs.x, ypos = lhs.y}, residual_list)
 		end
 	end
-	return outtable
+
+	return principle_list, residual_list
 end
 
-
-function orbit_each_lhs_name_around(lhs_name, moving_units)
-	-- vprint("lhs_name", lhs_name)
-
-	local lhs_uid_list = findall(lhs_name)
-
-	-- vprint("lhs_uid_list", lhs_uid_list)
-
-	if (#lhs_uid_list == 0) then
-		-- print("no lhs objects found")
-		return
-	end
-
-	for i,lhs_uid in ipairs(lhs_uid_list) do
-		orbit_each_lhs_around(lhs_uid, moving_units)
-	end
+---comment
+---@param lhs_now {x:number, y:number}
+---@param lhs_then {x:number, y:number}
+---@return {dir:dir_t, moves:integer} principle_polar
+---@return {x:number, y:number} principle_vec
+---@return {dir:dir_t, moves:integer} residual_polar
+---@return {x:number, y:number} residual_vec
+function decompose_position_change_into_steps(lhs_now, lhs_then)
+	local s_vec = {x=lhs_then.x-lhs_now.x, y=lhs_then.y-lhs_now.y}
+	local p_dir = vec_to_dir(s_vec) -- principle step direction
+	local p_vec = dir_to_vec(p_dir) -- principle step unit vector
+	local p_len = s_vec.x*p_vec.x + s_vec.y*p_vec.y -- step length needed for principle step
+	local r_vec = {x=s_vec.x - p_len*p_vec.x, y=s_vec.y - p_len*p_vec.y} -- residual vector
+	local r_dir = vec_to_dir(r_vec)
+	local r_len = math.abs(r_vec.x) + math.abs(r_vec.y)
+	return {dir=p_dir, moves=p_len}, p_vec, {dir=r_dir, moves=r_len}, r_vec
 end
-function orbit_each_lhs_around(lhs_uid, moving_units)
-	-- vprint("lhs_uid", lhs_uid)
-	if issleep(lhs_uid) then
-		return
-	end
+
+---comment
+---@param lhs_uid uid_t
+---@param rhs_uids table<uid_t, integer>
+---@param verb_graph graph_t
+---@param new_pos_table {x:number, y:number, w:number}[]
+---@return { x: integer, y: integer }
+function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
+	local rhs_now, rhs_then = compute_rhs_positions(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 
 	local lhs_unit = mmf.newObject(lhs_uid)
+	local lhs = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
 
-	if lhs_unit.flags[DEAD] then
-		return
-	end
-	
-	-- vprint("lhs_unit", lhs_unit)
-	local lhs_name =lhs_unit.strings[UNITNAME]
-	local applicable_rules = {}
+	local invariant_now = compute_invariant(lhs, rhs_now)
 
-	if (lhs_unit.strings[UNITTYPE] == "text") then
-		lhs_name = "text"
-	end
-
-	-- vprint("featureindex["..lhs_name.."]", featureindex[lhs_name])
-
-	if (featureindex[lhs_name] ~= nil) then					
-		for i,rule_info in ipairs(featureindex[lhs_name]) do
-			local rule_main = rule_info[1]
-			local rule_pred = rule_info[2]
-			
-			local verb = rule_main[2]
-			
-			if (verb == "orbit") then
-				if testcond(rule_pred, lhs_uid) then
-					table.insert(applicable_rules, rule_info)
-				end
+	---@type {x:integer, y:integer}[]
+	local candidate_lhs_list = {}
+	for x = 1, roomsizex do
+		for y = 1, roomsizey do
+			local candidate_lhs = {x=x,y=y}
+			local invariant_then = compute_invariant({x=x,y=y}, rhs_then)
+			if invariant_then == invariant_now then
+				table.insert(candidate_lhs_list, candidate_lhs)
 			end
 		end
 	end
 
-	-- vprint("applicable_rules", applicable_rules)
-
-	local rhs_names = xthis(applicable_rules, lhs_name, "orbit")
-
-	for i,rhs_name in ipairs(rhs_names) do
-		orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units)
+	local progress_now = compute_progress(lhs, rhs_now)
+	local function progress_key(candidate_lhs)
+		local progress, modulus = compute_progress(candidate_lhs, rhs_then)
+		progress = progress - progress_now
+		while progress < 0 do
+			progress = progress + modulus
+		end
+		progress = math.fmod(progress, modulus)
+		return progress
 	end
 
+	table.sort(candidate_lhs_list, progress_key)
+
+	local steps = 1
+	for i, rhs in ipairs(rhs_now) do
+		if steps < rhs.w then
+			steps = rhs.w
+		end
+	end
+	while steps > #candidate_lhs_list do
+		steps = steps - #candidate_lhs_list
+	end
+
+	return candidate_lhs_list[steps]
 end
-function orbit_each_lhs_around_rhs_name(lhs_uid, rhs_name, moving_units)
-	local rhs_uid_list = findall({rhs_name})
-	-- vprint("rhs_uid_list", rhs_uid_list)
+
+---get the positions and weights of all rhs objects given the lhs object orbiting them
+---@param lhs_uid uid_t
+---@param rhs_uids table<uid_t, integer>
+---@param verb_graph graph_t
+---@return {x:number, y:number, w:number}[]
+---@return {x:number, y:number, w:number}[]
+function compute_rhs_positions(lhs_uid, rhs_uids, verb_graph, new_pos_table)
+	local now, later = {}, {}
+
+	local lhs = mmf.newObject(lhs_uid)
+	local lx, ly = lhs.values[XPOS],lhs.values[YPOS]
+
+	for rhs_uid, lw in ipairs(rhs_uids) do
+		rhs = mmf.newObject(rhs_uid)
+		local rx, ry = rhs.values[XPOS],rhs.values[YPOS]
+
+		local use_barycenter = false
+		local rw = nil
+		if verb_graph[rhs_uid] ~= nil then
+			for maybe_lhs_uid, maybe_rw in ipairs(verb_graph[rhs_uid]) do
+				if maybe_lhs_uid == lhs_uid then
+					use_barycenter = true
+					rhs_weight = maybe_rw
+					break
+				end
+			end
+		end
+
+		local x,y,w,nx,ny
+
+		if use_barycenter then
+			w = (lw + rw) / 2
+			x = (lx*lw + rx*rw) / w / 2
+			y = (ly*lw + ry*rw) / w / 2
+			nx = x
+			ny = y
+		else
+			w = lw
+			x, y = rx, ry
+			local N = new_pos_table[rhs_uid]
+			if N ~= nil then
+				nx, ny = N.x, N.y
+			else
+				nx, ny = x, y
+			end
+		end
+
+		table.insert(now, {x=x, y=y, w=w})
+		table.insert(later, {x=nx, y=ny, w=w})
+	end
+	return now, later
+end
+
+---compute the orbit invariant, which drives the on-rails behavior of the orbit
+---in the case of two bodies this is just the radius
+---@param lhs {x:number, y:number}
+---@param rhs_list {x:number, y:number, w:number}[]
+---@return number
+function compute_invariant(lhs, rhs_list)
+	local result = 0
+	local denom = 0
+	for i, rhs in ipairs(rhs_list) do
+		local dx = lhs.x - rhs.x
+		local dy = lhs.y - rhs.y
+		local len = math.sqrt(dx*dx + dy*dy)
+		result = result + len * rhs.w
+		denom = denom + rhs.w
+	end
+	return math.floor((result / denom) + 0.5)
+end
+
+---compute the orbit progress value, which drives the forward motion direction of the orbit
+---also returns the progress modulus; values shoud be compared with regard to that modulus
+---@param lhs {x:number, y:number}
+---@param rhs_list {x:number, y:number, w:number}[]
+---@return number, number
+function compute_progress(lhs, rhs_list)
+	local result = 0
+	local modulus = 0
+	for i, rhs in ipairs(rhs_list) do
+		local dx = lhs.x - rhs.x
+		local dy = lhs.y - rhs.y
+		local ang = math.atan(dy, dx)
+		result = result + ang
+		modulus = modulus + 2*math.pi
+	end
+	return result, modulus
+end
+
+---
+--- @param verb string
+--- @return table<uid_t, table<uid_t, integer>>
+function build_verb_graph(verb)
+	result = {}
+
+	local lhs_features = findfeature(nil,verb,nil)
+	local lhs_uids = feature_list_to_uid_list(lhs_features)
 	
-	for i,rhs_uid in ipairs(rhs_uid_list) do
-		orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units)
+	for i, lhs_uid in ipairs(lhs_uids) do
+		if not (isdead(lhs_uid) or issleep(lhs_uid) or isstill(lhs_uid)) then
+			local lhs_name = get_uid_name(lhs_uid)
+			local rules = collect_applicable_rules(lhs_uid, verb)
+			local rhs_names = xthis(rules, lhs_name, "orbit")
+
+			local rhs_uids = name_list_to_uid_list(rhs_names)
+
+			for j, rhs_uid in ipairs(rhs_uids) do
+				if result[lhs_uid] == nil then
+					result[lhs_uid] = {}
+				end
+				if result[lhs_uid][rhs_uid] == nil then
+					result[lhs_uid][rhs_uid] = 0
+				end
+				result[lhs_uid][rhs_uid] = result[lhs_uid][rhs_uid] + 1
+			end
+		end	
 	end
-end
-function orbit_each_lhs_around_rhs(lhs_uid, rhs_uid, moving_units)
-	local lhs_unit = mmf.newObject(lhs_uid)
-	local rhs_unit = mmf.newObject(rhs_uid)
-
-	local lx,ly,ld = lhs_unit.values[XPOS],lhs_unit.values[YPOS],lhs_unit.values[DIR]
-	local rx,ry,rd = rhs_unit.values[XPOS],rhs_unit.values[YPOS],rhs_unit.values[DIR]
-
-	local lhs_is_reverse = (reversecheck(lhs_uid,ld,lx,ly) ~= ld)
-	-- vprint("lhs_is_reverse", lhs_is_reverse)
-
-	local tangent_step, radius_step = calc_orbit_step(lx-rx, ly-ry, lhs_is_reverse)
-
-	if isstill_or_locked(lhs_uid, lx, ly, ld) == false then
-		insert_move({unitid = lhs_uid, reason = "orbit_tangent", state = 0, moves = 1, dir = tangent_step, xpos = lx, ypos = ly}, moving_units)
-		insert_move({unitid = lhs_uid, reason = "orbit_radius", state = 0, moves = 1, dir = radius_step, xpos = lx, ypos = ly}, moving_units)
-	end
-end
-
-
-local function hyp(a, b)
-    return math.sqrt(a*a + b*b)
-end
-local function leg(b, c)
-    return math.sqrt(c*c - b*b)
-end
-local function round(x)
-    return math.floor(x+0.5)
-end
-local function step_x(rx, nx)
-	if nx > rx then
-		return 0
-	elseif nx < rx then
-		return 2
-	else
-		return -1
-	end
-end
-local function step_y(ry, ny)
-	if ny > ry then
-		return 3
-	elseif ny < ry then
-		return 1
-	else
-		return -1
-	end
-end
-local function calc_octant(x, y)
-	-- math.floor(math.atan2(ry,rx) * 4 / math.pi)
-	local angle = math.atan2(y,x)
-	angle = math.fmod(angle + math.pi * 2, math.pi * 2)
-	local result = math.floor(angle * 4 / math.pi ) + 1
-	local ax, ay = math.abs(x), math.abs(y)
-
-	-- handle boundaries correctly:
-	if x == 0 and y == 0 then
-		result = -1
-	elseif y == 0 then
-		if x > 0 then
-			result = 1
-		elseif x < 0 then
-			result = 5
-		end
-	elseif x == 0 then
-		if y > 0 then
-			result = 3
-		elseif x < 0 then
-			result = 7
-		end
-	elseif ax == ay then
-		if x > 0 and y > 0 then
-			result = 2
-		elseif x < 0 and y > 0 then
-			result = 4
-		elseif x < 0 and y < 0 then
-			result = 6
-		elseif x > 0 and y < 0 then
-			result = 8
-		end
-	end
-	
-	-- vprint("x", x)
-	-- vprint("y", y)
-	-- vprint("octant", result)
-
 	return result
 end
-function calc_orbit_step(x,y, reverse)
-	local tangent_step = -1
-	local radius_step = -1
-	local r = hyp(x, y)
-	local octant = calc_octant(x, y)
 
-	candidates = {}
-
-	if octant == -1 then
-		candidates = {{0,0}}
-	elseif octant == 1 then
-		candidates = {{0,1},{-1,1}}
-	elseif octant == 2 then
-		candidates = {{-1,0},{-1,1}}
-	elseif octant == 3 then
-		candidates = {{-1,0},{-1,-1}}
-	elseif octant == 4 then
-		candidates = {{0,-1},{-1,-1}}
-	elseif octant == 5 then
-		candidates = {{0,-1},{1,-1}}
-	elseif octant == 6 then
-		candidates = {{1,0},{1,-1}}
-	elseif octant == 7 then
-		candidates = {{1,0},{1,1}}
-	elseif octant == 8 then
-		candidates = {{0,1},{1,1}}
+function get_uid_name(uid)
+	local unit = mmf.newObject(uid)
+	local name = unit.strings[UNITNAME]
+	if (unit.strings[UNITTYPE] == "text") then
+		name = "text"
 	end
+	return name
+end
 
-	local best_loss = 9999
-	local best_step = {0,0}
-	local bx, by, br = x, y, r
+---Collect rules that apply to 
+---@param uid uid_t
+---@return table
+function collect_applicable_rules(uid, verb)
+	local unit = mmf.newObject(uid)
+	local name = get_uid_name(uid)
+	local applicable_rules = {}
 
-	for i, candidate in ipairs(candidates) do
-		local dx = candidate[1]
-		local dy = candidate[2]
-
-		local nx = x+dx
-		local ny = y+dy
-		local nr = hyp(nx,ny)
-
-		local loss = 10 * math.abs(round(nr)-round(r)) + math.abs(nr-round(r))
-
-		if loss < best_loss then
-			best_loss = loss
-			best_step = candidate
-			bx, by, br = nx, ny, nr
+	if (featureindex[name] ~= nil) then					
+		for i,rule_info in ipairs(featureindex[name]) do
+			local rule_main = rule_info[1]
+			local rule_pred = rule_info[2]
+			local rule_verb = rule_main[2]
+			
+			if (rule_verb == verb) and testcond(rule_pred, uid) then
+				table.insert(applicable_rules, rule_info)
+			end
 		end
+		
 	end
-
-	if octant == 1 or octant == 8 or octant == 4 or octant == 5 then
-		tangent_step = step_y(y,by)
-		radius_step = step_x(x,bx)
-	else -- octant == 2 or octant == 3 then
-		tangent_step = step_x(x,bx)
-		radius_step = step_y(y,by)
-	end
-
-	-- if (math.floor(br) ~= math.floor(r)) then
-	-- 	print("Orbital Drift:")
-	-- 	vprint("rr",r)
-	-- 	vprint("rx",rx)
-	-- 	vprint("ry",ry)
-	-- 	vprint("nr",nr)
-	-- 	vprint("nx",nx)
-	-- 	vprint("ny",ny)
-	-- 	radius_step = -1
-	-- end
-
-	return tangent_step, radius_step
+	return applicable_rules
 end
-
-
-
-function vprint(name, value)
-	if value == nil then
-		print(name .. " = nil")
-	elseif type(value) == "table" then
-		print(name .. " = ")
-		tprint(value, 1)
-	elseif type(value) == 'boolean' then
-	  print(name .. " = " .. tostring(value))
-	else
-	  print(name .. " = " .. value)
-	end
-end
-function tprint (tbl, indent)
-	if not indent then indent = 0 end
-	for k, v in pairs(tbl) do
-	  formatting = string.rep("  ", indent) .. k .. ": "
-	  if type(v) == "table" then
-		print(formatting)
-		tprint(v, indent+1)
-	  elseif type(v) == 'boolean' then
-		print(formatting .. tostring(v))      
-	  else
-		print(formatting .. v)
-	  end
-	end
-  end
-
--- function test_octant_func()
--- 	print("testing octant centers (should be 1 2 3 4 5 6 7 8)")
--- 	calc_octant(2,1)
--- 	calc_octant(1,2)
--- 	calc_octant(-1,2)
--- 	calc_octant(-2,1)
--- 	calc_octant(-2,-1)
--- 	calc_octant(-1,-2)
--- 	calc_octant(1,-2)
--- 	calc_octant(2,-1)
-
--- 	print("testing octant edges (should still be 1 2 3 4 5 6 7 8)")
--- 	calc_octant(1,0)
--- 	calc_octant(1,1)
--- 	calc_octant(0,1)
--- 	calc_octant(-1,1)
--- 	calc_octant(-1,0)
--- 	calc_octant(-1,-1)
--- 	calc_octant(0,-1)
--- 	calc_octant(1,-1)
--- end
--- test_octant_func()
