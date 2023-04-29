@@ -49,7 +49,10 @@ package: $(PACK_NAME).zip
 
 install: $(PACK_NAME).zip
 	rm -rd "$(BABA_INSTALL_PATH)"/**
-	cp -r $(PACK_NAME) -T "$(BABA_INSTALL_PATH)"
+	@for f in $(FILES) ; do \
+		echo install -D $$f "$(BABA_INSTALL_PATH)/$$f" ; \
+		install -D $$f "$(BABA_INSTALL_PATH)/$$f" ; \
+	done
 
 sc_install: $(wildcard Lua/*) $(wildcard Lua/*/*)
 	rm -rd "$(BABA_INSTALL_PATH)"/Lua/**

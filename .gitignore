@@ -43,6 +43,9 @@ luac.out
 *.txt.tmp
 *.ld.tmp
 
+# Debug Logging Outputs
+log/
+
 # Build Outputs
 Sprites/*.png
 Baba-is-Outer/
