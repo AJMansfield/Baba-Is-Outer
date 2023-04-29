@@ -277,7 +277,7 @@ end
 ---@param unitid uid_t
 ---@return boolean
 function isreverse(unitid)
-	return reversecheck(unitid, 0) == 0
+	return reversecheck(unitid, 0) ~= 0
 end
 
 ---@alias graph_t table<uid_t, table<uid_t, integer>>
