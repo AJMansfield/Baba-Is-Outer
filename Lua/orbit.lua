@@ -165,8 +165,9 @@ function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 
 	local steps = 1
 	for rhs_uid, rhs_weight in pairs(verb_graph[lhs_uid]) do
-		if steps < rhs_weight then
-			steps = rhs_weight
+		local rmag = math.abs(rhs_weight)
+		if steps < rmag then
+			steps = rmag
 		end
 	end
 	steps = steps + 1
