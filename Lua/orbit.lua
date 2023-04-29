@@ -108,81 +108,113 @@ end
 ---@return { x: integer, y: integer }
 function compute_new_pos(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 	print("computing new position")
-	vprint("lhs_uid", lhs_uid)
-	vprint("rhs_uids", rhs_uids)
+	-- vprint("lhs_uid", lhs_uid)
+	-- vprint("rhs_uids", rhs_uids)
 	-- vprint("verb_graph", verb_graph)
 	-- vprint("new_pos_table", new_pos_table)
 
 	local rhs_now, rhs_then = compute_rhs_positions(lhs_uid, rhs_uids, verb_graph, new_pos_table)
 
-	vprint("rhs_now", rhs_now)
-	vprint("rhs_then", rhs_then)
+	-- vprint("rhs_now", rhs_now)
+	-- vprint("rhs_then", rhs_then)
 
 	local is_reverse = isreverse(lhs_uid)
 	local lhs_unit = mmf.newObject(lhs_uid)
 	local lhs_now = {x=lhs_unit.values[XPOS], y=lhs_unit.values[YPOS]}
-	lhs_now.invariant = compute_invariant(lhs_now, rhs_now)
-	lhs_now.progress, lhs_now.pmodulus = compute_progress(lhs_now, rhs_now, is_reverse)
+	local lhs_now_invariant, lhs_now_imodulus = compute_invariant(lhs_now, rhs_now)
+	local lhs_now_invariant_norm = normalize_invariant(lhs_now_invariant, lhs_now_imodulus, is_reverse)
+	local lhs_now_progress, lhs_now_pmodulus = compute_progress(lhs_now, rhs_now, is_reverse)
+	local target_step = compute_target_stepsize(rhs_then)
+
+	lhs_now.invariant = lhs_now_invariant
 	
-	vprint("lhs_now", lhs_now)
+	local function progress_key(pvalue)
+		local progress = pvalue - lhs_now_progress
 
-	---@type {x:integer, y:integer}[]
-	local candidate_lhs_list = {}
-	for x = 1, roomsizex do
-		for y = 1, roomsizey do
-			local lhs_then = {x=x,y=y}
-			lhs_then.invariant = compute_invariant(lhs_then, rhs_then)
-			lhs_then.progress, lhs_then.pmodulus = compute_progress(lhs_then, rhs_then, is_reverse)
-			if normalize_invariant(lhs_then.invariant) == normalize_invariant(lhs_now.invariant) then
-				table.insert(candidate_lhs_list, lhs_then)
-			end
-		end
-	end
-
-	if #candidate_lhs_list <= 1 then 
-		return lhs_now -- safety valve just in case
-	end
-
-	local function progress_key(lhs_then)
-		local progress = lhs_then.progress - lhs_now.progress
-		if lhs_then.pmodulus > 0 then
+		if lhs_now_pmodulus > 0 then
 			while progress < 0 do
-				progress = progress + lhs_then.pmodulus
+				progress = progress + lhs_now_pmodulus
 			end
-			progress = math.fmod(progress, lhs_then.pmodulus)
+			progress = math.fmod(progress, lhs_now_pmodulus)
 		end
 		return progress
 	end
+	lhs_now.progress = progress_key(lhs_now_progress)
 
-	local function progress_cmp(a, b)
-		return progress_key(a) < progress_key(b)
+	vprint("lhs_now", lhs_now)
+
+
+	---@param lhs {x:integer, y:integer, invariant:number, progress:number}
+	---@return number
+	---@return table
+	local function loss(lhs)
+		i = {}
+		-- prefer an actual step close in size to the target step size
+		i.xy = math.abs(distance(lhs, lhs_now) - target_step)
+		-- prefer a good approximation to the recovered invariant
+		i.inv = math.abs((lhs.invariant/lhs_now_imodulus) - lhs_now_invariant_norm)
+		-- prefer progress values that correspond to a step close to the target step size
+		i.prog = math.abs((lhs.invariant * lhs.progress / lhs_now_pmodulus * math.pi*2) - target_step)
+
+		if lhs.progress <= 0 then
+			i.still = 1
+		end
+		-- prefer positions in which the recovered invariant value will be the same
+		i.info = math.abs(normalize_invariant(lhs.invariant, lhs_now_imodulus, is_reverse) - lhs_now_invariant_norm)
+		return combine_losses(i), i
 	end
 
-	vprint("candidate_lhs_list", candidate_lhs_list)
-
-	table.sort(candidate_lhs_list, progress_cmp)
-
-
-	local steps = 1
-	for rhs_uid, rhs_weight in pairs(verb_graph[lhs_uid]) do
-		local rmag = math.abs(rhs_weight)
-		if steps < rmag then
-			steps = rmag
+	---@type {x:integer, y:integer, invariant:number, progress:number, oob:boolean, loss:number}[]
+	local all_lhs_list = {}
+	local lower_x, upper_x, lower_y, upper_y = locked_search_bounds(lhs_uid)
+	for x = lower_x, upper_x do -- we want to consider moves into out-of-bounds spaces, so we can be stopped by the edges
+		for y = lower_y, upper_y do
+			local lhs_then = {x=x,y=y}
+			local lhs_then_invariant, lhs_then_imodulus = compute_invariant(lhs_then, rhs_then)
+			lhs_then.invariant = lhs_then_invariant
+			local lhs_then_progress, lhs_then_pmodulus = compute_progress(lhs_then, rhs_then, is_reverse)
+			lhs_then.progress = progress_key(lhs_then_progress)
+			lhs_then.oob = is_oob(lhs_then)
+			lhs_then.loss, lhs_then.loss_info = loss(lhs_then)
+			table.insert(all_lhs_list, lhs_then)
 		end
 	end
-	steps = steps + 1
-	while steps > #candidate_lhs_list do
-		steps = steps - #candidate_lhs_list
+
+	local function loss_comp(a, b)
+		return a.loss < b.loss
 	end
+	table.sort(all_lhs_list, loss_comp)
 
-	local selected_lhs = candidate_lhs_list[steps]
+	vprint("all_lhs_list", all_lhs_list)
 
-	-- vprint("candidate_lhs_list", candidate_lhs_list)
-	-- vprint("steps", steps)
-	-- vprint("selected_lhs", selected_lhs)
-
-	return selected_lhs
+	return all_lhs_list[1]
 end
+
+function locked_search_bounds(uid)
+	
+	local unit = mmf.newObject(uid)
+	local x, y = unit.values[XPOS], unit.values[YPOS]
+	
+	local lower_x = 1
+	if isstill_or_locked(uid, x, y, DIRECTION_VALUES.Xn) then
+		lower_x = x
+	end
+	local upper_x = roomsizex
+	if isstill_or_locked(uid, x, y, DIRECTION_VALUES.Xp) then
+		upper_x = x
+	end
+	local lower_y = 1
+	if isstill_or_locked(uid, x, y, DIRECTION_VALUES.Yn) then
+		lower_y = y
+	end
+	local upper_y = roomsizey
+	if isstill_or_locked(uid, x, y, DIRECTION_VALUES.Yp) then
+		lower_y = y
+	end
+	return lower_x, upper_x, lower_y, upper_y
+end
+
+
 
 ---get the positions and weights of all rhs objects given the lhs object orbiting them
 ---@param lhs_uid uid_t
@@ -253,32 +285,27 @@ end
 ---in the case of two bodies this is just the radius
 ---@param lhs {x:number, y:number}
 ---@param rhs_list {x:number, y:number, w:number}[]
----@return number
+---@return number invariant The invariant value itself
+---@return number invariant_modulus Invariant distance should be considered as a proportion of this value
 function compute_invariant(lhs, rhs_list)
 	-- print("computing invariant")
 	-- vprint("lhs", lhs)
 	-- vprint("rhs_list", rhs_list)
-	local numer = 0
-	local denom = 0
+	local result = 0
+	local modulus = 0
 	for i, rhs in pairs(rhs_list) do
-		local dx = lhs.x - rhs.x
-		local dy = lhs.y - rhs.y
-		local len = math.sqrt(dx*dx + dy*dy)
-		numer = numer + len * rhs.w
-		denom = denom + rhs.w
+		result = result + distance(lhs, rhs) * rhs.w
+		modulus = modulus + math.abs(rhs.w)
 	end
-	if denom ~= 0 then
-		return numer / denom
-	else
-		return numer
-	end
-	
-	-- vprint("invariant", (result / denom) )
-	-- return (numer / denom)
+	return result, modulus
 end
 
-function normalize_invariant(invariant)
-	return math.floor(invariant + 0.5)
+function normalize_invariant(invariant, modulus, is_reverse)
+	if is_reverse then
+		return math.ceil(invariant/modulus - 0.5)
+	else
+		return math.floor(invariant/modulus + 0.5)
+	end
 end
 
 ---compute the orbit progress value, which drives the forward motion direction of the orbit
@@ -286,24 +313,47 @@ end
 ---@param lhs {x:number, y:number}
 ---@param rhs_list {x:number, y:number, w:number}[]
 ---@param is_reverse boolean
----@return number, number
+---@return number progress The progress value itself
+---@return number progress_modulus Progress should be considered modular around this value (unless zero)
 function compute_progress(lhs, rhs_list, is_reverse)
-	local result = 0
+	local total = 0
 	local modulus = 0
 	for i, rhs in pairs(rhs_list) do
 		local dx = lhs.x - rhs.x
 		local dy = lhs.y - rhs.y
 		local ang = math.atan(dy, dx) + math.pi
+		local arclen = ang / rhs.w
+		local circum = 2*math.pi / rhs.w
+		-- if the weight is 2x, we need 2x the distance to count for the same progress increment
+
 		if not is_reverse then
-			result = result + rhs.w * ang
+			total = total + arclen 
+			modulus = modulus + circum
 		else
-			result = result - rhs.w * ang
+			total = total - arclen
+			modulus = modulus - circum
 		end
-		modulus = modulus + math.abs(rhs.w) * 2*math.pi
 	end
-	return result, modulus
+	if math.abs(modulus) < math.pi * 2 then
+		modulus =  math.pi * 2
+	end
+	return total, math.abs(modulus)
 end
 
+---compute the orbit progress value, which drives the forward motion direction of the orbit
+---also returns the progress modulus; values shoud be compared with regard to that modulus
+---@param rhs_list {x:number, y:number, w:number}[]
+---@return number progress The progress value itself
+function compute_target_stepsize(rhs_list)
+	local max_w = 0
+	for i, rhs in pairs(rhs_list) do
+		if math.abs(rhs.w) > max_w then
+			max_w =  math.abs(rhs.w)
+		end
+	end
+	-- find the hypotenuse of a triangle with sides w and w/2
+	return max_w --* math.sqrt(5/4)
+end
 
 ---Determine if this adjacency is majority clockwise (for diagonal precedence purposes)
 ---@param neighbors table<uid_t, integer> neighbor table
@@ -314,4 +364,42 @@ function is_majority_clockwise(neighbors)
 		sum = sum + n_weight
 	end
 	return sum > 0
+end
+
+---@param pos {x:integer, y:integer}
+---@return boolean
+function is_oob(pos)
+	return pos.x < 1 or pos.y < 1 or pos.x > roomsizex or pos.y > roomsizey
+end
+
+---@param tab table
+---@param pred fun(x:any):boolean
+---@return integer
+function count_predicate(tab, pred)
+	local total = 0
+	for i, v in pairs(tab) do
+		if pred(v) then
+			total = total + 1
+		end
+	end
+	return total
+end
+
+
+
+---@param a {x:number, y:number}
+---@param b {x:number, y:number}
+---@return number
+function distance(a, b)
+	local dx = a.x-b.x
+	local dy = a.y-b.y
+	return math.sqrt(dx*dx+dy*dy)
+end
+
+function combine_losses(info)
+	local magsq = 0
+	for i, loss in pairs(info) do
+		magsq = magsq + loss*loss
+	end
+	return math.sqrt(magsq)
 end
