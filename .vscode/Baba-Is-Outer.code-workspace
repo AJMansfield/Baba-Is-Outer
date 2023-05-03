@@ -6,7 +6,10 @@
 		},
 		{
 			"name": "Baba",
-			"path": "C:/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data"
+			"path": "C:/Program Files (x86)/Steam/steamapps/common/Baba Is You/Data",
+			"ignore": [
+				"Worlds/"
+			]
 		}
 	],
 	"settings": {
@@ -17,7 +20,7 @@
 			"**/CVS": true,
 			"**/.DS_Store": true,
 			"**/Thumbs.db": true,
-			"${workspaceFolder:Baba}/Worlds/**": true,
+			"Worlds/": true
 		},
 		"Lua.runtime.path": [
 			"?.lua",
@@ -426,9 +429,6 @@
 		"Lua.diagnostics.disable": ["lowercase-global"],
 		"Lua.diagnostics.libraryFiles": "Disable",
 		"Lua.diagnostics.ignoredFiles": "Disable",
-		"files.watcherExclude": {
-			"${workspaceFolder:Baba}/Worlds/**": true
-		},
 		"editor.definitionLinkOpensInPeek": false,
 	}
 }
