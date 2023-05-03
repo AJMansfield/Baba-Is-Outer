@@ -425,6 +425,12 @@
 			"visiontiling",              // vision.lua:696
 			"mod_hook_functions",
 			"mmf",
+			"roomsizex",
+			"roomsizey",
+			"cobjects",
+			"unitreference",
+			"objectpalette",
+			"generaldata",
 		],
 		"Lua.diagnostics.disable": ["lowercase-global"],
 		"Lua.diagnostics.libraryFiles": "Disable",
